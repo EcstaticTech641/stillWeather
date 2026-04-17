@@ -551,12 +551,23 @@
     gTbody.innerHTML = '';
     [...schedule.morning, ...schedule.evening].forEach(g => {
       const gStartParts = g.start.split(':');
+      const gEndParts = g.end.split(':');
       const decideDt = new Date(dayData[0].fullDate);
       decideDt.setHours(parseInt(gStartParts[0]), parseInt(gStartParts[1]) - travelMinutes, 0);
       
+      const gStartHour = decideDt.getHours();
+      const gEndHour = parseInt(gEndParts[0]) + (parseInt(gEndParts[1]) > 0 ? 1 : 0);
+      
+      let grpScore = 0;
+      dayData.forEach(hour => {
+        const hr = hour.fullDate.getHours();
+        if (hr >= gStartHour && hr <= gEndHour) {
+          const score = getThreatScore(hour);
+          if (score > grpScore) grpScore = score;
+        }
+      });
+      
       const tr = document.createElement('tr');
-      const isMorning = gStartParts[0] < 12;
-      const grpScore = isMorning ? morningMaxScore : eveningMaxScore;
       const stat = getStatusInfo(grpScore);
       
       tr.innerHTML = `
