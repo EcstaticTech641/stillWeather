@@ -139,10 +139,7 @@
         <label for="day-select">Select day</label>
         <select id="day-select"></select>
       </div>
-      <div class="control-group">
-        <label for="travel-slider">Travel time: <span id="travel-val">60</span> min</label>
-        <input type="range" id="travel-slider" min="15" max="90" step="15" value="60">
-      </div>
+
       <div class="control-group" style="justify-content: flex-end;">
         <button id="refresh-btn" style="padding: 8px 16px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; cursor: pointer;">Refresh Data</button>
       </div>
@@ -284,7 +281,7 @@
   };
 
   const daySelect = document.getElementById('day-select');
-  const travelSlider = document.getElementById('travel-slider');
+
   
   let weatherData = { alerts: [], data: [] };
   let allDays = [];
@@ -409,8 +406,7 @@
     if (!weatherData.data.length) return;
     
     const selectedDayStr = daySelect.value;
-    const travelMinutes = parseInt(travelSlider.value, 10);
-    document.getElementById('travel-val').textContent = travelMinutes;
+    const travelMinutes = 60;
     
     // Find weekday for schedule
     const dayData = weatherData.data.filter(d => d.dayStr === selectedDayStr);
@@ -576,7 +572,7 @@
   }
 
   daySelect.addEventListener('change', updateDashboard);
-  travelSlider.addEventListener('input', updateDashboard);
+
   document.getElementById('refresh-btn').addEventListener('click', fetchWeatherData);
   
   // Init by fetching data

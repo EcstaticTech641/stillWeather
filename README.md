@@ -9,11 +9,11 @@ A standalone interactive HTML dashboard widget to help the Stillwater YMCA Swim 
 - **Interactive UI:** A responsive, dark-mode compatible design matching flat white cards and green/amber/red status pills.
 
 ## Usage
-Simply open `index.html` in any web browser. The app will automatically query the National Weather Service, parse the incoming JSON payload, calculate group-specific risk profiles, and build the hourly timeline based on your selected "travel time" constraints.
+Simply open `index.html` in any web browser. The app will automatically query the National Weather Service, parse the incoming JSON payload, calculate group-specific risk profiles, and build the hourly timeline based on the fixed 60-minute travel time constraint.
 
 ## Logic Overview
 - Decisions are split into Morning and Evening windows.
-- "Decide by" deadlines are driven by a user-controlled slider (defaults to 60 minutes before the first scheduled practice of the group).
+- "Decide by" deadlines are fixed at 60 minutes before the first scheduled practice of the group.
 - **Threat Score (0-100):**
   - Severe Warning: Auto-set to minimum 70.
   - Tornado Warning: Auto-set to 100 (Cancel).
