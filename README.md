@@ -1,17 +1,15 @@
 # Stillwater Swim Club - Practice Weather Decision Tool
 
-An interactive HTML dashboard widget to help the Stillwater YMCA Swim Club make practice hold/cancel decisions based on National Weather Service (NWS) data.
+A standalone interactive HTML dashboard widget to help the Stillwater YMCA Swim Club make practice hold/cancel decisions based on real-time National Weather Service (NWS) data.
 
 ## Features
-- **NWS Data Fetching:** A Python script `fetch_parse.py` fetches the current tabular hourly forecast and active alerts for Stillwater, OK (from NWS API endpoints).
-- **Dashboard Generation:** A script `build_widget.py` reads the fetched data and injects it into a standalone interactive HTML dashboard.
+- **Live Realtime NWS Fetching:** The web app reaches out directly to the free NWS APIs (`api.weather.gov`) on load to get the latest hourly forecasts and active county alerts for Stillwater, OK. No external scripts or agentic updates are required!
+- **Self-Updating UI:** Includes a "Refresh Data" button that instantly fetches the latest conditions without reloading the entire page.
 - **Decision Engine:** Automatically calculates threat scores taking into account specific thresholds for temperature, wind, precipitation, and the YMCA lightning policy.
 - **Interactive UI:** A responsive, dark-mode compatible design matching flat white cards and green/amber/red status pills.
 
 ## Usage
-1. Run `python fetch_parse.py` to retrieve the latest weather data (outputs `weather_data.json`).
-2. Run `python build_widget.py` to bake the updated JSON data directly into `index.html`.
-3. Open `index.html` in any web browser.
+Simply open `index.html` in any web browser. The app will automatically query the National Weather Service, parse the incoming JSON payload, calculate group-specific risk profiles, and build the hourly timeline based on your selected "travel time" constraints.
 
 ## Logic Overview
 - Decisions are split into Morning and Evening windows.

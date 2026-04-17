@@ -143,20 +143,23 @@
         <label for="travel-slider">Travel time: <span id="travel-val">60</span> min</label>
         <input type="range" id="travel-slider" min="15" max="90" step="15" value="60">
       </div>
+      <div class="control-group" style="justify-content: flex-end;">
+        <button id="refresh-btn" style="padding: 8px 16px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-weight: 600; cursor: pointer;">Refresh Data</button>
+      </div>
     </div>
     
     <div class="grid-2">
       <div>
         <h3>Top-level verdict</h3>
         <div style="margin-bottom: 16px;">
-          <span id="verdict-pill" class="pill status-green">Hold</span>
+          <span id="verdict-pill" class="pill status-green">Loading...</span>
         </div>
-        <p id="verdict-reasoning" style="font-size: 0.875rem;"></p>
+        <p id="verdict-reasoning" style="font-size: 0.875rem;">Fetching live data from NWS...</p>
       </div>
       <div>
         <h3>Current conditions</h3>
         <div class="grid-2" style="gap: 16px;" id="current-conditions">
-          <!-- Populated by JS -->
+          <p>Loading live weather data...</p>
         </div>
       </div>
     </div>
@@ -166,11 +169,9 @@
     <div class="card">
       <h2>Decision factors</h2>
       <ul style="padding-left: 20px; font-size: 0.875rem; margin: 0;" id="factors-list">
-        <!-- Populated by JS -->
       </ul>
       <h3 style="margin-top: 24px;">Active alerts</h3>
       <ul style="padding-left: 20px; font-size: 0.875rem; margin: 0;" id="alerts-list">
-        <!-- Populated by JS -->
       </ul>
     </div>
     
@@ -186,7 +187,6 @@
           </tr>
         </thead>
         <tbody id="groups-tbody">
-          <!-- Populated by JS -->
         </tbody>
       </table>
     </div>
@@ -206,24 +206,17 @@
         </tr>
       </thead>
       <tbody id="timeline-tbody">
-        <!-- Populated by JS -->
       </tbody>
     </table>
   </div>
 </div>
 
 <footer>
-  Data source: National Weather Service (NWS)<br>
-  Timestamp: <span id="timestamp"></span><br>
-  To refresh, say 'update weather' in chat
+  Data source: National Weather Service (NWS API)<br>
+  Timestamp: <span id="timestamp">Updating...</span><br>
 </footer>
 
 <script>
-  const weatherData = {"alerts": [], "data": [{"date": "", "hour": "14", "temp": "62", "wind_speed": "14", "wind_gust": "21", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "15", "temp": "63", "wind_speed": "14", "wind_gust": "21", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "16", "temp": "63", "wind_speed": "13", "wind_gust": "20", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "17", "temp": "65", "wind_speed": "11", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "18", "temp": "63", "wind_speed": "9", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "19", "temp": "63", "wind_speed": "7", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "20", "temp": "59", "wind_speed": "6", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "21", "temp": "54", "wind_speed": "5", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "22", "temp": "51", "wind_speed": "3", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "23", "temp": "49", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "04/19", "hour": "00", "temp": "48", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "01", "temp": "46", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "02", "temp": "45", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "03", "temp": "43", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "04", "temp": "42", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "05", "temp": "41", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "06", "temp": "40", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "07", "temp": "39", "wind_speed": "2", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "08", "temp": "45", "wind_speed": "3", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "09", "temp": "51", "wind_speed": "5", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "10", "temp": "57", "wind_speed": "6", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "11", "temp": "61", "wind_speed": "7", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "12", "temp": "66", "wind_speed": "8", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "13", "temp": "70", "wind_speed": "9", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "14", "temp": "73", "wind_speed": "15", "wind_gust": "23", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "15", "temp": "74", "wind_speed": "15", "wind_gust": "23", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "16", "temp": "75", "wind_speed": "15", "wind_gust": "23", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "17", "temp": "74", "wind_speed": "15", "wind_gust": "23", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "18", "temp": "73", "wind_speed": "14", "wind_gust": "21", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "19", "temp": "72", "wind_speed": "13", "wind_gust": "20", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "20", "temp": "68", "wind_speed": "11", "wind_gust": "18", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "21", "temp": "64", "wind_speed": "11", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "22", "temp": "61", "wind_speed": "10", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "23", "temp": "59", "wind_speed": "10", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "04/21", "hour": "00", "temp": "59", "wind_speed": "9", "wind_gust": "", "pop": "0", "rain": "--", "thunder": "--"}, {"date": "", "hour": "01", "temp": "58", "wind_speed": "9", "wind_gust": "", "pop": "2", "rain": "--", "thunder": "--"}, {"date": "", "hour": "02", "temp": "57", "wind_speed": "9", "wind_gust": "", "pop": "2", "rain": "--", "thunder": "--"}, {"date": "", "hour": "03", "temp": "56", "wind_speed": "8", "wind_gust": "", "pop": "2", "rain": "--", "thunder": "--"}, {"date": "", "hour": "04", "temp": "55", "wind_speed": "8", "wind_gust": "", "pop": "2", "rain": "--", "thunder": "--"}, {"date": "", "hour": "05", "temp": "54", "wind_speed": "8", "wind_gust": "", "pop": "2", "rain": "--", "thunder": "--"}, {"date": "", "hour": "06", "temp": "53", "wind_speed": "8", "wind_gust": "", "pop": "2", "rain": "--", "thunder": "--"}, {"date": "", "hour": "07", "temp": "53", "wind_speed": "8", "wind_gust": "", "pop": "3", "rain": "--", "thunder": "--"}, {"date": "", "hour": "08", "temp": "55", "wind_speed": "9", "wind_gust": "", "pop": "3", "rain": "--", "thunder": "--"}, {"date": "", "hour": "09", "temp": "59", "wind_speed": "10", "wind_gust": "", "pop": "3", "rain": "--", "thunder": "--"}, {"date": "", "hour": "10", "temp": "63", "wind_speed": "11", "wind_gust": "20", "pop": "3", "rain": "--", "thunder": "--"}, {"date": "", "hour": "11", "temp": "67", "wind_speed": "13", "wind_gust": "22", "pop": "3", "rain": "--", "thunder": "--"}, {"date": "", "hour": "12", "temp": "70", "wind_speed": "14", "wind_gust": "23", "pop": "3", "rain": "--", "thunder": "--"}, {"date": "", "hour": "13", "temp": "73", "wind_speed": "15", "wind_gust": "24", "pop": "2", "rain": "--", "thunder": "--"}]};
-  const fetchedAt = "2026-04-17 02:48 PM";
-  
-  document.getElementById('timestamp').textContent = fetchedAt;
-  
   // Practice Schedule Configuration
   const schedules = {
     'Monday': {
@@ -290,54 +283,81 @@
     'Sunday': { evening: [], morning: [] }
   };
 
+  const daySelect = document.getElementById('day-select');
+  const travelSlider = document.getElementById('travel-slider');
+  
+  let weatherData = { alerts: [], data: [] };
+  let allDays = [];
+
   // Helper parsing numbers
   function parseNum(str) {
     if (!str || str === '--') return 0;
-    const m = str.match(/[0-9]+/);
-    return m ? parseInt(m[0], 10) : 0;
+    if (typeof str === 'number') return str;
+    const matches = str.toString().match(/[0-9]+/g);
+    if (!matches) return 0;
+    return Math.max(...matches.map(m => parseInt(m, 10)));
   }
 
-  // Pre-process weather dates to full Date objects
-  // The first item is our starting point.
-  // We need to determine the real dates based on 'date' transitions like '04/18'
-  let currentYear = new Date().getFullYear();
-  let currentMonth = new Date().getMonth() + 1;
-  let currentDate = new Date().getDate();
-  let currentDayName = new Date().toLocaleDateString('en-US', {weekday: 'long'});
-  
-  let processingDate = null;
-  let allDays = [];
-  
-  weatherData.data.forEach((hourData, index) => {
-    if (hourData.date) {
-      const parts = hourData.date.split('/');
-      if (parts.length === 2) {
-        processingDate = new Date(currentYear, parseInt(parts[0],10)-1, parseInt(parts[1],10));
-      }
-    }
-    if (!processingDate && index === 0) {
-      // First hour doesn't have a date string usually if it's today
-      processingDate = new Date();
-    }
-    hourData.fullDate = new Date(processingDate);
-    hourData.fullDate.setHours(parseInt(hourData.hour, 10), 0, 0, 0);
-    
-    const dayStr = hourData.fullDate.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'});
-    if (!allDays.includes(dayStr)) {
-      allDays.push(dayStr);
-    }
-    hourData.dayStr = dayStr;
-    hourData.weekday = hourData.fullDate.toLocaleDateString('en-US', {weekday: 'long'});
-  });
+  async function fetchWeatherData() {
+    try {
+      document.getElementById('current-conditions').innerHTML = '<p>Loading live weather data...</p>';
+      document.getElementById('timestamp').textContent = 'Fetching...';
+      
+      const [alertsRes, forecastRes] = await Promise.all([
+        fetch('https://api.weather.gov/alerts/active?point=36.1152,-97.0624'),
+        fetch('https://api.weather.gov/gridpoints/OUN/114,122/forecast/hourly')
+      ]);
 
-  const daySelect = document.getElementById('day-select');
-  allDays.forEach(day => {
-    const opt = document.createElement('option');
-    opt.value = day;
-    opt.textContent = day;
-    daySelect.appendChild(opt);
-  });
-  
+      const alertsJson = await alertsRes.json();
+      const forecastJson = await forecastRes.json();
+
+      // Process Alerts
+      weatherData.alerts = (alertsJson.features || []).map(f => f.properties.event);
+
+      // Process Forecast
+      const periods = forecastJson.properties.periods || [];
+      weatherData.data = periods.map(p => {
+        const fullDate = new Date(p.startTime);
+        return {
+          fullDate: fullDate,
+          dayStr: fullDate.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'}),
+          weekday: fullDate.toLocaleDateString('en-US', {weekday: 'long'}),
+          hour: fullDate.getHours(),
+          temp: p.temperature,
+          wind_speed: parseNum(p.windSpeed),
+          wind_gust: p.windGust ? parseNum(p.windGust) : 0,
+          pop: (p.probabilityOfPrecipitation && p.probabilityOfPrecipitation.value) ? p.probabilityOfPrecipitation.value : 0,
+          desc: p.shortForecast
+        };
+      });
+
+      // Populate Days
+      allDays = [];
+      weatherData.data.forEach(d => {
+        if (!allDays.includes(d.dayStr)) allDays.push(d.dayStr);
+      });
+      
+      daySelect.innerHTML = '';
+      allDays.forEach(day => {
+        const opt = document.createElement('option');
+        opt.value = day;
+        opt.textContent = day;
+        daySelect.appendChild(opt);
+      });
+
+      const fetchedAt = new Date().toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
+      document.getElementById('timestamp').textContent = fetchedAt + " (Live from NWS API)";
+
+      updateDashboard();
+    } catch (e) {
+      console.error(e);
+      document.getElementById('current-conditions').innerHTML = '<p style="color:var(--red-text)">Error loading weather data. Please try again later.</p>';
+      document.getElementById('verdict-pill').textContent = 'Error';
+      document.getElementById('verdict-pill').className = 'pill status-red';
+      document.getElementById('verdict-reasoning').textContent = 'Failed to connect to NWS API.';
+    }
+  }
+
   // Calculate Threat Score for a specific hour
   function getThreatScore(hourData) {
     let score = 0;
@@ -352,20 +372,20 @@
     
     if (hasTornado) return 100;
     
-    const pop = parseNum(hourData.pop);
+    const pop = hourData.pop;
     if (pop >= 80) score += 15;
     else if (pop >= 50) score += 8;
     else if (pop >= 30) score += 3;
     
-    const gust = Math.max(parseNum(hourData.wind_speed), parseNum(hourData.wind_gust));
+    const gust = Math.max(hourData.wind_speed, hourData.wind_gust);
     if (gust >= 50) score += 25;
     else if (gust >= 35) score += 10;
     else if (gust >= 25) score += 5;
     
-    const desc = (hourData.thunder || '') + ' ' + (hourData.rain || '');
-    if (desc.toLowerCase().includes('tstms') || desc.toLowerCase().includes('thunder')) score += 40;
-    if (desc.toLowerCase().includes('severe')) score += 30;
-    if (desc.toLowerCase().includes('hail')) score += 20;
+    const desc = (hourData.desc || '').toLowerCase();
+    if (desc.includes('tstm') || desc.includes('thunder') || desc.includes('storm')) score += 40;
+    if (desc.includes('severe')) score += 30;
+    if (desc.includes('hail')) score += 20;
     
     if (hasSevere && score < 70) return 70;
     return Math.min(score, 100);
@@ -386,8 +406,10 @@
   }
 
   function updateDashboard() {
+    if (!weatherData.data.length) return;
+    
     const selectedDayStr = daySelect.value;
-    const travelMinutes = parseInt(document.getElementById('travel-slider').value, 10);
+    const travelMinutes = parseInt(travelSlider.value, 10);
     document.getElementById('travel-val').textContent = travelMinutes;
     
     // Find weekday for schedule
@@ -540,14 +562,13 @@
       
       const ampm = hr >= 12 ? 'PM' : 'AM';
       const dhr = hr % 12 || 12;
-      const desc = [hour.rain, hour.thunder].filter(x => x && x !== '--' && x !== '<Scd>').join(' / ');
       
       tr.innerHTML = `
         <td>${dhr} ${ampm}</td>
         <td>${hour.temp}&deg;F</td>
         <td>${hour.wind_speed} / ${hour.wind_gust || 0}</td>
         <td>${hour.pop}%</td>
-        <td>${desc || 'None'}</td>
+        <td>${hour.desc || 'None'}</td>
         <td><span class="pill ${stat.class}">${score}</span></td>
       `;
       tTbody.appendChild(tr);
@@ -555,10 +576,11 @@
   }
 
   daySelect.addEventListener('change', updateDashboard);
-  document.getElementById('travel-slider').addEventListener('input', updateDashboard);
+  travelSlider.addEventListener('input', updateDashboard);
+  document.getElementById('refresh-btn').addEventListener('click', fetchWeatherData);
   
-  // Init
-  updateDashboard();
+  // Init by fetching data
+  fetchWeatherData();
 </script>
 </body>
 </html>
