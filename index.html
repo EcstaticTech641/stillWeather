@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Practice Weather Decision Tool</title>
+<link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="shortcut icon" href="favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="WeatherTool" />
+<link rel="manifest" href="site.webmanifest" />
 <style>
   :root {
     --bg: #f4f4f5;
@@ -154,7 +160,7 @@
         <p id="verdict-reasoning" style="font-size: 0.875rem;">Fetching live data from NWS...</p>
       </div>
       <div>
-        <h3>Current conditions</h3>
+        <h3 id="conditions-title">Current conditions</h3>
         <div class="grid-2" style="gap: 16px;" id="current-conditions">
           <p>Loading live weather data...</p>
         </div>
@@ -478,6 +484,9 @@
     document.getElementById('verdict-reasoning').textContent = reason;
 
     // Current conditions (from first hour of selected day)
+    const isToday = (selectedDayStr === allDays[0]);
+    document.getElementById('conditions-title').textContent = isToday ? 'Current conditions' : 'Forecasted conditions';
+
     const current = dayData[0];
     const currScore = getThreatScore(current);
     document.getElementById('current-conditions').innerHTML = `
