@@ -489,14 +489,41 @@
     const isToday = (selectedDayStr === allDays[0]);
     document.getElementById('conditions-title').textContent = isToday ? 'Current conditions' : 'Forecasted conditions';
 
-    const current = dayData[0];
-    const currScore = getThreatScore(current);
-    document.getElementById('current-conditions').innerHTML = `
-      <div><div class="metric">${current.temp}&deg;F</div><div class="metric-label">Temperature</div></div>
-      <div><div class="metric">${current.wind_speed} mph</div><div class="metric-label">Wind (Gusts: ${current.wind_gust || '0'})</div></div>
-      <div><div class="metric">${current.pop}%</div><div class="metric-label">Precip chance</div></div>
-      <div><div class="metric">${currScore}</div><div class="metric-label">Threat score</div></div>
-    `;
+    let displayHtml = '';
+    if (isToday) {
+      const current = dayData[0];
+      const currScore = getThreatScore(current);
+      displayHtml = `
+        <div><div class="metric">${current.temp}&deg;F</div><div class="metric-label">Temperature</div></div>
+        <div><div class="metric">${current.wind_speed} mph</div><div class="metric-label">Wind (Gusts: ${current.wind_gust || '0'})</div></div>
+        <div><div class="metric">${current.pop}%</div><div class="metric-label">Precip chance</div></div>
+        <div><div class="metric">${currScore}</div><div class="metric-label">Threat score</div></div>
+      `;
+    } else {
+      let highTemp = -999, lowTemp = 999;
+      let peakWind = 0;
+      let sumPop = 0;
+      
+      dayData.forEach(h => {
+        if (h.temp > highTemp) highTemp = h.temp;
+        if (h.temp < lowTemp) lowTemp = h.temp;
+        
+        const maxWind = Math.max(h.wind_speed, h.wind_gust || 0);
+        if (maxWind > peakWind) peakWind = maxWind;
+        
+        sumPop += h.pop;
+      });
+      
+      const avgPop = Math.round(sumPop / dayData.length);
+      
+      displayHtml = `
+        <div><div class="metric">${highTemp}&deg; / ${lowTemp}&deg;</div><div class="metric-label">High / Low</div></div>
+        <div><div class="metric">Peak ${peakWind} mph</div><div class="metric-label">Est. Peak Wind</div></div>
+        <div><div class="metric">${avgPop}%</div><div class="metric-label">Avg Precip Chance</div></div>
+        <div><div class="metric">${totalMaxScore}</div><div class="metric-label">Max Threat Score</div></div>
+      `;
+    }
+    document.getElementById('current-conditions').innerHTML = displayHtml;
 
     // Decision factors
     const dList = document.getElementById('factors-list');
