@@ -1,0 +1,584 @@
+import json
+import datetime
+
+with open('weather_data.json', 'r', encoding='utf-8') as f:
+    data = json.load(f)
+
+# Ensure data is clean
+for h in data['data']:
+    # Clean non-numeric characters for temp, wind, pop
+    pass
+
+html_template = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Weather Decision Tool</title>
+<style>
+  :root {
+    --bg: #f4f4f5;
+    --card-bg: #ffffff;
+    --text: #18181b;
+    --text-muted: #71717a;
+    --border: #e4e4e7;
+    --green-bg: #dcfce7;
+    --green-text: #166534;
+    --amber-bg: #fef3c7;
+    --amber-text: #92400e;
+    --red-bg: #fee2e2;
+    --red-text: #991b1b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #09090b;
+      --card-bg: #18181b;
+      --text: #f4f4f5;
+      --text-muted: #a1a1aa;
+      --border: #27272a;
+      --green-bg: #052e16;
+      --green-text: #4ade80;
+      --amber-bg: #451a03;
+      --amber-text: #fbbf24;
+      --red-bg: #450a0a;
+      --red-text: #f87171;
+    }
+  }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .dashboard {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    gap: 24px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 600px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+  h1, h2, h3 { margin-top: 0; margin-bottom: 16px; font-weight: 600; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1rem; color: var(--text-muted); }
+  
+  .pill {
+    display: inline-block;
+    padding: 4px 12px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .status-green { background: var(--green-bg); color: var(--green-text); }
+  .status-amber { background: var(--amber-bg); color: var(--amber-text); }
+  .status-red { background: var(--red-bg); color: var(--red-text); }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+  th, td {
+    padding: 12px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .timeline-travel { background: var(--amber-bg); }
+  .timeline-practice { background: var(--green-bg); }
+  
+  .controls {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  label {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  select, input[type="range"] {
+    padding: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .metric {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  .metric-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+  footer {
+    margin-top: 48px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="dashboard">
+  <div class="card">
+    <h1>Practice weather decision tool</h1>
+    <div class="controls">
+      <div class="control-group">
+        <label for="day-select">Select day</label>
+        <select id="day-select"></select>
+      </div>
+      <div class="control-group">
+        <label for="travel-slider">Travel time: <span id="travel-val">60</span> min</label>
+        <input type="range" id="travel-slider" min="15" max="90" step="15" value="60">
+      </div>
+    </div>
+    
+    <div class="grid-2">
+      <div>
+        <h3>Top-level verdict</h3>
+        <div style="margin-bottom: 16px;">
+          <span id="verdict-pill" class="pill status-green">Hold</span>
+        </div>
+        <p id="verdict-reasoning" style="font-size: 0.875rem;"></p>
+      </div>
+      <div>
+        <h3>Current conditions</h3>
+        <div class="grid-2" style="gap: 16px;" id="current-conditions">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>Decision factors</h2>
+      <ul style="padding-left: 20px; font-size: 0.875rem; margin: 0;" id="factors-list">
+        <!-- Populated by JS -->
+      </ul>
+      <h3 style="margin-top: 24px;">Active alerts</h3>
+      <ul style="padding-left: 20px; font-size: 0.875rem; margin: 0;" id="alerts-list">
+        <!-- Populated by JS -->
+      </ul>
+    </div>
+    
+    <div class="card">
+      <h2>Group schedule & risk</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Group</th>
+            <th>Practice time</th>
+            <th>Decide by</th>
+            <th>Risk level</th>
+          </tr>
+        </thead>
+        <tbody id="groups-tbody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Hourly timeline (travel & practice windows)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Hour</th>
+          <th>Temp</th>
+          <th>Wind/Gust</th>
+          <th>Precip chance</th>
+          <th>Descriptor</th>
+          <th>Threat score</th>
+        </tr>
+      </thead>
+      <tbody id="timeline-tbody">
+        <!-- Populated by JS -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  Data source: National Weather Service (NWS)<br>
+  Timestamp: <span id="timestamp"></span><br>
+  To refresh, say 'update weather' in chat
+</footer>
+
+<script>
+  const weatherData = {weather_data_json};
+  const fetchedAt = "{timestamp}";
+  
+  document.getElementById('timestamp').textContent = fetchedAt;
+  
+  // Practice Schedule Configuration
+  const schedules = {
+    'Monday': {
+      evening: [
+        { group: 'Onyx', start: '18:30', end: '19:15' },
+        { group: 'Sapphire', start: '18:30', end: '19:30' },
+        { group: 'Ivory', start: '18:30', end: '19:30' },
+        { group: 'Purple', start: '17:15', end: '18:30' },
+        { group: 'Senior Dev', start: '17:00', end: '18:30' },
+        { group: 'Senior', start: '17:00', end: '19:00' }
+      ],
+      morning: [
+        { group: 'Senior Dev / Senior', start: '06:15', end: '07:45' }
+      ]
+    },
+    'Tuesday': {
+      evening: [
+        { group: 'Onyx', start: '18:30', end: '19:15' },
+        { group: 'Sapphire', start: '18:30', end: '19:30' },
+        { group: 'Ivory', start: '18:30', end: '19:30' },
+        { group: 'Purple', start: '18:30', end: '19:45' },
+        { group: 'Senior Dev', start: '17:00', end: '18:30' },
+        { group: 'Senior', start: '17:00', end: '19:00' }
+      ],
+      morning: []
+    },
+    'Wednesday': {
+      evening: [
+        { group: 'Onyx', start: '18:30', end: '19:15' },
+        { group: 'Sapphire', start: '18:30', end: '19:30' },
+        { group: 'Ivory', start: '18:30', end: '19:30' },
+        { group: 'Purple', start: '17:15', end: '18:30' },
+        { group: 'Senior Dev', start: '17:00', end: '18:30' },
+        { group: 'Senior', start: '17:00', end: '19:00' }
+      ],
+      morning: [
+        { group: 'Senior Dev / Senior', start: '06:15', end: '07:45' }
+      ]
+    },
+    'Thursday': {
+      evening: [
+        { group: 'Onyx', start: '18:30', end: '19:15' },
+        { group: 'Sapphire', start: '18:30', end: '19:30' },
+        { group: 'Ivory', start: '18:30', end: '19:30' },
+        { group: 'Purple', start: '18:30', end: '19:45' },
+        { group: 'Senior Dev', start: '17:00', end: '18:30' },
+        { group: 'Senior', start: '17:00', end: '19:00' }
+      ],
+      morning: []
+    },
+    'Friday': {
+      evening: [
+        { group: 'Sapphire', start: '18:30', end: '19:30' },
+        { group: 'Ivory', start: '18:30', end: '19:30' },
+        { group: 'Purple', start: '17:00', end: '18:30' },
+        { group: 'Senior Dev', start: '17:00', end: '18:30' },
+        { group: 'Senior', start: '17:00', end: '19:00' }
+      ],
+      morning: [
+        { group: 'Senior Dev / Senior', start: '06:15', end: '07:45' }
+      ]
+    },
+    'Saturday': { evening: [], morning: [] },
+    'Sunday': { evening: [], morning: [] }
+  };
+
+  // Helper parsing numbers
+  function parseNum(str) {
+    if (!str || str === '--') return 0;
+    const m = str.match(/[0-9]+/);
+    return m ? parseInt(m[0], 10) : 0;
+  }
+
+  // Pre-process weather dates to full Date objects
+  // The first item is our starting point.
+  // We need to determine the real dates based on 'date' transitions like '04/18'
+  let currentYear = new Date().getFullYear();
+  let currentMonth = new Date().getMonth() + 1;
+  let currentDate = new Date().getDate();
+  let currentDayName = new Date().toLocaleDateString('en-US', {weekday: 'long'});
+  
+  let processingDate = null;
+  let allDays = [];
+  
+  weatherData.data.forEach((hourData, index) => {
+    if (hourData.date) {
+      const parts = hourData.date.split('/');
+      if (parts.length === 2) {
+        processingDate = new Date(currentYear, parseInt(parts[0],10)-1, parseInt(parts[1],10));
+      }
+    }
+    if (!processingDate && index === 0) {
+      // First hour doesn't have a date string usually if it's today
+      processingDate = new Date();
+    }
+    hourData.fullDate = new Date(processingDate);
+    hourData.fullDate.setHours(parseInt(hourData.hour, 10), 0, 0, 0);
+    
+    const dayStr = hourData.fullDate.toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'});
+    if (!allDays.includes(dayStr)) {
+      allDays.push(dayStr);
+    }
+    hourData.dayStr = dayStr;
+    hourData.weekday = hourData.fullDate.toLocaleDateString('en-US', {weekday: 'long'});
+  });
+
+  const daySelect = document.getElementById('day-select');
+  allDays.forEach(day => {
+    const opt = document.createElement('option');
+    opt.value = day;
+    opt.textContent = day;
+    daySelect.appendChild(opt);
+  });
+  
+  // Calculate Threat Score for a specific hour
+  function getThreatScore(hourData) {
+    let score = 0;
+    
+    // Alert overrides
+    let hasTornado = false;
+    let hasSevere = false;
+    weatherData.alerts.forEach(a => {
+      if (a.toLowerCase().includes('tornado warning')) hasTornado = true;
+      if (a.toLowerCase().includes('severe thunderstorm warning')) hasSevere = true;
+    });
+    
+    if (hasTornado) return 100;
+    
+    const pop = parseNum(hourData.pop);
+    if (pop >= 80) score += 15;
+    else if (pop >= 50) score += 8;
+    else if (pop >= 30) score += 3;
+    
+    const gust = Math.max(parseNum(hourData.wind_speed), parseNum(hourData.wind_gust));
+    if (gust >= 50) score += 25;
+    else if (gust >= 35) score += 10;
+    else if (gust >= 25) score += 5;
+    
+    const desc = (hourData.thunder || '') + ' ' + (hourData.rain || '');
+    if (desc.toLowerCase().includes('tstms') || desc.toLowerCase().includes('thunder')) score += 40;
+    if (desc.toLowerCase().includes('severe')) score += 30;
+    if (desc.toLowerCase().includes('hail')) score += 20;
+    
+    if (hasSevere && score < 70) return 70;
+    return Math.min(score, 100);
+  }
+
+  function getStatusInfo(score) {
+    if (score >= 45) return { text: 'Cancel', class: 'status-red' };
+    if (score >= 20) return { text: 'Monitor', class: 'status-amber' };
+    return { text: 'Hold', class: 'status-green' };
+  }
+
+  function formatTime(timeStr) {
+    const [h, m] = timeStr.split(':');
+    let hr = parseInt(h, 10);
+    const ampm = hr >= 12 ? 'pm' : 'am';
+    hr = hr % 12 || 12;
+    return `${hr}:${m}${ampm}`;
+  }
+
+  function updateDashboard() {
+    const selectedDayStr = daySelect.value;
+    const travelMinutes = parseInt(document.getElementById('travel-slider').value, 10);
+    document.getElementById('travel-val').textContent = travelMinutes;
+    
+    // Find weekday for schedule
+    const dayData = weatherData.data.filter(d => d.dayStr === selectedDayStr);
+    if (!dayData.length) return;
+    const weekday = dayData[0].weekday;
+    const schedule = schedules[weekday] || { evening: [], morning: [] };
+    
+    let morningEarliestStart = null;
+    let eveningEarliestStart = null;
+    let morningLatestEnd = null;
+    let eveningLatestEnd = null;
+    
+    schedule.morning.forEach(g => {
+      if (!morningEarliestStart || g.start < morningEarliestStart) morningEarliestStart = g.start;
+      if (!morningLatestEnd || g.end > morningLatestEnd) morningLatestEnd = g.end;
+    });
+    schedule.evening.forEach(g => {
+      if (!eveningEarliestStart || g.start < eveningEarliestStart) eveningEarliestStart = g.start;
+      if (!eveningLatestEnd || g.end > eveningLatestEnd) eveningLatestEnd = g.end;
+    });
+
+    // Determine windows (inclusive of travel)
+    let morningStartHour = 24, morningEndHour = 0;
+    let eveningStartHour = 24, eveningEndHour = 0;
+    
+    if (morningEarliestStart) {
+      const msParts = morningEarliestStart.split(':');
+      const startDt = new Date(dayData[0].fullDate);
+      startDt.setHours(parseInt(msParts[0]), parseInt(msParts[1]) - travelMinutes, 0);
+      morningStartHour = startDt.getHours();
+      morningEndHour = parseInt(morningLatestEnd.split(':')[0]) + (parseInt(morningLatestEnd.split(':')[1]) > 0 ? 1 : 0);
+    }
+    
+    if (eveningEarliestStart) {
+      const msParts = eveningEarliestStart.split(':');
+      const startDt = new Date(dayData[0].fullDate);
+      startDt.setHours(parseInt(msParts[0]), parseInt(msParts[1]) - travelMinutes, 0);
+      eveningStartHour = startDt.getHours();
+      eveningEndHour = parseInt(eveningLatestEnd.split(':')[0]) + (parseInt(eveningLatestEnd.split(':')[1]) > 0 ? 1 : 0);
+    }
+
+    let morningMaxScore = 0;
+    let eveningMaxScore = 0;
+    
+    dayData.forEach(hour => {
+      const hr = hour.fullDate.getHours();
+      const score = getThreatScore(hour);
+      if (morningEarliestStart && hr >= morningStartHour && hr <= morningEndHour) {
+        morningMaxScore = Math.max(morningMaxScore, score);
+      }
+      if (eveningEarliestStart && hr >= eveningStartHour && hr <= eveningEndHour) {
+        eveningMaxScore = Math.max(eveningMaxScore, score);
+      }
+    });
+
+    const totalMaxScore = Math.max(morningMaxScore, eveningMaxScore);
+    const overallStatus = getStatusInfo(totalMaxScore);
+    
+    const vPill = document.getElementById('verdict-pill');
+    vPill.textContent = overallStatus.text;
+    vPill.className = 'pill ' + overallStatus.class;
+    
+    let reason = "Conditions are generally safe for travel and practice.";
+    if (overallStatus.text === 'Cancel') {
+      reason = "Severe threat detected during the travel or practice window. Cancellation is recommended.";
+    } else if (overallStatus.text === 'Monitor') {
+      reason = "Elevated threat. Monitor radar and NWS alerts closely.";
+    }
+    document.getElementById('verdict-reasoning').textContent = reason;
+
+    // Current conditions (from first hour of selected day)
+    const current = dayData[0];
+    const currScore = getThreatScore(current);
+    document.getElementById('current-conditions').innerHTML = `
+      <div><div class="metric">${current.temp}&deg;F</div><div class="metric-label">Temperature</div></div>
+      <div><div class="metric">${current.wind_speed} mph</div><div class="metric-label">Wind (Gusts: ${current.wind_gust || '0'})</div></div>
+      <div><div class="metric">${current.pop}%</div><div class="metric-label">Precip chance</div></div>
+      <div><div class="metric">${currScore}</div><div class="metric-label">Threat score</div></div>
+    `;
+
+    // Decision factors
+    const dList = document.getElementById('factors-list');
+    dList.innerHTML = '';
+    if (schedule.morning.length) {
+      dList.innerHTML += `<li>Morning threat score: <strong>${morningMaxScore}</strong> (${getStatusInfo(morningMaxScore).text})</li>`;
+    }
+    if (schedule.evening.length) {
+      dList.innerHTML += `<li>Evening threat score: <strong>${eveningMaxScore}</strong> (${getStatusInfo(eveningMaxScore).text})</li>`;
+    }
+    if (!schedule.morning.length && !schedule.evening.length) {
+      dList.innerHTML += `<li>No practices scheduled for ${weekday}.</li>`;
+    }
+
+    // Alerts
+    const aList = document.getElementById('alerts-list');
+    if (weatherData.alerts.length === 0) {
+      aList.innerHTML = '<li>No active alerts</li>';
+    } else {
+      aList.innerHTML = weatherData.alerts.map(a => `<li style="color: var(--red-text); font-weight: 600;">${a}</li>`).join('');
+    }
+
+    // Groups schedule
+    const gTbody = document.getElementById('groups-tbody');
+    gTbody.innerHTML = '';
+    [...schedule.morning, ...schedule.evening].forEach(g => {
+      const gStartParts = g.start.split(':');
+      const decideDt = new Date(dayData[0].fullDate);
+      decideDt.setHours(parseInt(gStartParts[0]), parseInt(gStartParts[1]) - travelMinutes, 0);
+      
+      const tr = document.createElement('tr');
+      const isMorning = gStartParts[0] < 12;
+      const grpScore = isMorning ? morningMaxScore : eveningMaxScore;
+      const stat = getStatusInfo(grpScore);
+      
+      tr.innerHTML = `
+        <td>${g.group}</td>
+        <td>${formatTime(g.start)} – ${formatTime(g.end)}</td>
+        <td>${formatTime(decideDt.toTimeString().substring(0,5))}</td>
+        <td><span class="pill ${stat.class}">${stat.text}</span></td>
+      `;
+      gTbody.appendChild(tr);
+    });
+
+    // Timeline
+    const tTbody = document.getElementById('timeline-tbody');
+    tTbody.innerHTML = '';
+    dayData.forEach(hour => {
+      const hr = hour.fullDate.getHours();
+      let isTravel = false;
+      let isPractice = false;
+      
+      if (morningEarliestStart) {
+        const pStart = parseInt(morningEarliestStart.split(':')[0]);
+        if (hr >= morningStartHour && hr < pStart) isTravel = true;
+        if (hr >= pStart && hr <= morningEndHour) isPractice = true;
+      }
+      if (eveningEarliestStart) {
+        const pStart = parseInt(eveningEarliestStart.split(':')[0]);
+        if (hr >= eveningStartHour && hr < pStart) isTravel = true;
+        if (hr >= pStart && hr <= eveningEndHour) isPractice = true;
+      }
+      
+      const score = getThreatScore(hour);
+      const stat = getStatusInfo(score);
+      const tr = document.createElement('tr');
+      
+      if (isPractice) tr.className = 'timeline-practice';
+      else if (isTravel) tr.className = 'timeline-travel';
+      
+      const ampm = hr >= 12 ? 'PM' : 'AM';
+      const dhr = hr % 12 || 12;
+      const desc = [hour.rain, hour.thunder].filter(x => x && x !== '--' && x !== '<Scd>').join(' / ');
+      
+      tr.innerHTML = `
+        <td>${dhr} ${ampm}</td>
+        <td>${hour.temp}&deg;F</td>
+        <td>${hour.wind_speed} / ${hour.wind_gust || 0}</td>
+        <td>${hour.pop}%</td>
+        <td>${desc || 'None'}</td>
+        <td><span class="pill ${stat.class}">${score}</span></td>
+      `;
+      tTbody.appendChild(tr);
+    });
+  }
+
+  daySelect.addEventListener('change', updateDashboard);
+  document.getElementById('travel-slider').addEventListener('input', updateDashboard);
+  
+  // Init
+  updateDashboard();
+</script>
+</body>
+</html>
+"""
+
+timestamp = datetime.datetime.now().strftime('%Y-%m-%d %I:%M %p')
+html_output = html_template.replace('{weather_data_json}', json.dumps(data)).replace('{timestamp}', timestamp)
+
+with open('index.html', 'w', encoding='utf-8') as f:
+    f.write(html_output)
+
+print("Dashboard built at index.html")
