@@ -1,6 +1,8 @@
 # Stillwater Swim Club - Practice Weather Decision Tool
 
 A standalone interactive HTML dashboard widget to help the Stillwater YMCA Swim Club make practice hold/cancel decisions based on real-time National Weather Service (NWS) data.
+Access Here - 
+https://aaronfpp.github.io/stillWeather/
 
 ## Features
 - **Live Realtime NWS Fetching:** The web app reaches out directly to the free NWS APIs (`api.weather.gov`) on load to get the latest hourly forecasts and active county alerts for Stillwater, OK. No external scripts or agentic updates are required!
