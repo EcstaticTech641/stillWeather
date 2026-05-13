@@ -4,6 +4,8 @@ A standalone interactive HTML dashboard widget to help the Stillwater YMCA Swim 
 Access Here - 
 https://aaronfpp.github.io/stillWeather/
 
+currrently inactive
+
 ## Features
 - **Live Realtime NWS Fetching:** The web app reaches out directly to the free NWS APIs (`api.weather.gov`) on load to get the latest hourly forecasts and active county alerts for Stillwater, OK. No external scripts or agentic updates are required!
 - **Self-Updating UI:** Includes a "Refresh Data" button that instantly fetches the latest conditions without reloading the entire page.
