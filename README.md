@@ -24,6 +24,7 @@ Simply open `index.html` in any web browser. The app will automatically query th
   - Thunder/T-Storms in forecast: +40 points (factors in YMCA 30-minute lightning clearance).
   - Points scaled heavily for precipitation probability and wind gusts.
   - Overall status based on max threat score during the travel + practice window:
-    - 0-19: Hold
-    - 20-44: Monitor
-    - 45+: Cancel
+    - 0-39: Hold
+    - 40-59: Monitor (Low)
+    - 60-84: Monitor (High)
+    - 85+: Cancel
