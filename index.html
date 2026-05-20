@@ -241,7 +241,7 @@
         { group: 'Senior', start: '17:00', end: '19:00' }
       ],
       morning: [
-        { group: 'Senior Dev / Senior', start: '06:15', end: '07:45' }
+        { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' }
       ]
     },
     'Tuesday': {
@@ -265,7 +265,7 @@
         { group: 'Senior', start: '17:00', end: '19:00' }
       ],
       morning: [
-        { group: 'Senior Dev / Senior', start: '06:15', end: '07:45' }
+        { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' }
       ]
     },
     'Thursday': {
@@ -288,7 +288,7 @@
         { group: 'Senior', start: '17:00', end: '19:00' }
       ],
       morning: [
-        { group: 'Senior Dev / Senior', start: '06:15', end: '07:45' }
+        { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' }
       ]
     },
     'Saturday': { evening: [], morning: [] },
@@ -404,8 +404,8 @@
   }
 
   function getStatusInfo(score) {
-    if (score >= 45) return { text: 'Cancel', class: 'status-red' };
-    if (score >= 20) return { text: 'Monitor', class: 'status-amber' };
+    if (score >= 80) return { text: 'Cancel', class: 'status-red' };
+    if (score >= 40) return { text: 'Monitor', class: 'status-amber' };
     return { text: 'Hold', class: 'status-green' };
   }
 
