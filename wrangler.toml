@@ -5,7 +5,7 @@
 # ──────────────────────────────────────────────────────────────────────────────
 
 name            = "stillweather-lightning"
-main            = "lightning-proxy.js"
+main            = "lightning-lightning.js"
 compatibility_date = "2024-11-01"
 
 # The WEATHERBIT_API_KEY is a secret — set it with:
