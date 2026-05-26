@@ -1,0 +1,13 @@
+# wrangler.toml — Cloudflare Worker config for stillWeather lightning proxy
+# ──────────────────────────────────────────────────────────────────────────────
+# Deploy with:  npx wrangler deploy
+# Set secret:   npx wrangler secret put WEATHERBIT_API_KEY
+# ──────────────────────────────────────────────────────────────────────────────
+
+name            = "stillweather-lightning"
+main            = "lightning-proxy.js"
+compatibility_date = "2024-11-01"
+
+# The WEATHERBIT_API_KEY is a secret — set it with:
+#   npx wrangler secret put WEATHERBIT_API_KEY
+# It will NOT be stored in this file or in your repo.
