@@ -6,4 +6,4 @@
 !.env.example
 .wrangler/
 .dev.vars
-node_modules/
+node_modules/wrangler.jsonc 
