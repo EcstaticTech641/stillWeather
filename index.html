@@ -301,6 +301,7 @@ async function fetchLightningData() {
     lightningData = null;
   }
   updateLightningStatus();
+  updateDashboard();
 }
 
 // ============================================================
@@ -417,7 +418,7 @@ function getThreatScore(hourData) {
   const hasThunderForecast =
     desc.includes('tstm') || desc.includes('thunder') || desc.includes('t-storm');
   if (hasThunderForecast) {
-    if (lightningScore === 0) {
+    if (!lightningData || hoursFromNow > 2) {
       lightningScore = 60;
     } else {
       lightningScore = Math.min(lightningScore + 5, 100);
