@@ -62,6 +62,11 @@
 
   <div class="card">
     <h1>Practice weather decision tool</h1>
+    <div class="location-tabs" style="display:flex; gap:16px; margin-bottom: 24px; flex-wrap: wrap; font-size:1rem; font-weight:500;">
+      <label style="cursor:pointer; display:flex; align-items:center; gap:6px;"><input type="radio" name="location" value="stillwater" checked> Stillwater YMCA</label>
+      <label style="cursor:pointer; display:flex; align-items:center; gap:6px;"><input type="radio" name="location" value="mitch"> Mitch Park YMCA</label>
+      <label style="cursor:pointer; display:flex; align-items:center; gap:6px;"><input type="radio" name="location" value="bethany"> Bethany YMCA</label>
+    </div>
     <div class="controls">
       <div class="control-group">
         <label for="day-select">Select day</label>
@@ -165,72 +170,129 @@
 //
 const LIGHTNING_PROXY_URL = 'https://stillweather-lightning.aaronfpp.workers.dev';  // <-- set after Worker deployment
 
-const LAT  = 36.1152;
-const LON  = -97.0624;
 const LIGHTNING_SEARCH_KM   = 80;  // ~50 mi — extended awareness radius (alert threshold: 25 mi)
 const LIGHTNING_SEARCH_MINS = 30;  // mirrors YMCA 30-min clearance window
 
 // ============================================================
-//  SCHEDULE
+//  LOCATIONS & SCHEDULES
 // ============================================================
-const schedules = {
-  'Monday': {
-    evening: [
-      { group: 'Onyx',       start: '18:30', end: '19:15' },
-      { group: 'Sapphire',   start: '18:30', end: '19:30' },
-      { group: 'Ivory',      start: '18:30', end: '19:30' },
-      { group: 'Purple',     start: '17:15', end: '18:30' },
-      { group: 'Senior Dev', start: '17:00', end: '18:30' },
-      { group: 'Senior',     start: '17:00', end: '19:00' }
-    ],
-    morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
+const locations = {
+  stillwater: {
+    name: 'Stillwater YMCA',
+    lat: 36.1152,
+    lon: -97.0624,
+    grid: 'OUN/114,122',
+    schedules: {
+      'Monday': {
+        evening: [
+          { group: 'Onyx',       start: '18:30', end: '19:15' },
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '17:15', end: '18:30' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
+      },
+      'Tuesday': {
+        evening: [
+          { group: 'Onyx',       start: '18:30', end: '19:15' },
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '18:30', end: '19:45' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: []
+      },
+      'Wednesday': {
+        evening: [
+          { group: 'Onyx',       start: '18:30', end: '19:15' },
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '17:15', end: '18:30' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
+      },
+      'Thursday': {
+        evening: [
+          { group: 'Onyx',       start: '18:30', end: '19:15' },
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '18:30', end: '19:45' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: []
+      },
+      'Friday': {
+        evening: [
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '17:00', end: '18:30' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
+      },
+      'Saturday': { evening: [], morning: [] },
+      'Sunday':   { evening: [], morning: [] }
+    }
   },
-  'Tuesday': {
-    evening: [
-      { group: 'Onyx',       start: '18:30', end: '19:15' },
-      { group: 'Sapphire',   start: '18:30', end: '19:30' },
-      { group: 'Ivory',      start: '18:30', end: '19:30' },
-      { group: 'Purple',     start: '18:30', end: '19:45' },
-      { group: 'Senior Dev', start: '17:00', end: '18:30' },
-      { group: 'Senior',     start: '17:00', end: '19:00' }
-    ],
-    morning: []
+  mitch: {
+    name: 'Mitch Park YMCA',
+    lat: 35.6847,
+    lon: -97.5083,
+    grid: 'OUN/98,103',
+    getSchedules: (dateStr) => {
+      const isSummer = new Date(dateStr) >= new Date('2026-06-01');
+      if (isSummer) {
+        return {
+          'Monday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Tuesday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Wednesday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Thursday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Friday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Saturday': { morning: [{group:'Purple',start:'09:45',end:'11:00'}], evening: [] },
+          'Sunday': { morning: [], evening: [] }
+        };
+      } else {
+        return {
+          'Monday': { morning: [], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Purple',start:'17:30',end:'18:30'},{group:'Senior Dev',start:'17:30',end:'18:45'},{group:'Senior',start:'18:30',end:'20:00'}] },
+          'Tuesday': { morning: [{group:'Senior',start:'05:30',end:'07:00'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'17:30',end:'18:15'},{group:'Ivory',start:'17:30',end:'18:15'},{group:'Senior Dev',start:'17:30',end:'18:45'},{group:'Senior',start:'18:15',end:'20:00'}] },
+          'Wednesday': { morning: [{group:'Senior',start:'05:30',end:'07:00'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'17:30',end:'18:30'},{group:'Ivory',start:'17:30',end:'18:30'},{group:'Purple',start:'17:30',end:'18:45'},{group:'Senior Dev',start:'18:30',end:'20:00'}] },
+          'Thursday': { morning: [{group:'Senior',start:'05:30',end:'07:00'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Sapphire',start:'17:30',end:'18:15'},{group:'Ivory',start:'17:30',end:'18:15'},{group:'Purple',start:'18:45',end:'19:45'},{group:'Senior Dev',start:'17:30',end:'18:45'},{group:'Senior',start:'18:15',end:'20:00'}] },
+          'Friday': { morning: [{group:'Senior',start:'05:30',end:'07:00'}], evening: [{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:45',end:'20:00'},{group:'Senior Dev',start:'18:30',end:'20:00'},{group:'Senior',start:'17:30',end:'19:00'}] },
+          'Saturday': { morning: [{group:'Purple',start:'09:30',end:'11:15'},{group:'Senior Dev',start:'09:25',end:'11:30'},{group:'Senior',start:'09:25',end:'12:00'}], evening: [] },
+          'Sunday': { morning: [], evening: [] }
+        };
+      }
+    }
   },
-  'Wednesday': {
-    evening: [
-      { group: 'Onyx',       start: '18:30', end: '19:15' },
-      { group: 'Sapphire',   start: '18:30', end: '19:30' },
-      { group: 'Ivory',      start: '18:30', end: '19:30' },
-      { group: 'Purple',     start: '17:15', end: '18:30' },
-      { group: 'Senior Dev', start: '17:00', end: '18:30' },
-      { group: 'Senior',     start: '17:00', end: '19:00' }
-    ],
-    morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
-  },
-  'Thursday': {
-    evening: [
-      { group: 'Onyx',       start: '18:30', end: '19:15' },
-      { group: 'Sapphire',   start: '18:30', end: '19:30' },
-      { group: 'Ivory',      start: '18:30', end: '19:30' },
-      { group: 'Purple',     start: '18:30', end: '19:45' },
-      { group: 'Senior Dev', start: '17:00', end: '18:30' },
-      { group: 'Senior',     start: '17:00', end: '19:00' }
-    ],
-    morning: []
-  },
-  'Friday': {
-    evening: [
-      { group: 'Sapphire',   start: '18:30', end: '19:30' },
-      { group: 'Ivory',      start: '18:30', end: '19:30' },
-      { group: 'Purple',     start: '17:00', end: '18:30' },
-      { group: 'Senior Dev', start: '17:00', end: '18:30' },
-      { group: 'Senior',     start: '17:00', end: '19:00' }
-    ],
-    morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
-  },
-  'Saturday': { evening: [], morning: [] },
-  'Sunday':   { evening: [], morning: [] }
+  bethany: {
+    name: 'Bethany YMCA & Ripper Park',
+    lat: 35.5051,
+    lon: -97.6316,
+    grid: 'OUN/93,95',
+    getSchedules: (dateStr) => {
+      // Using summer schedule for Bethany/Ripper Park
+      // Morning (Ripper Park), Evening (Bethany YMCA)
+      return {
+        'Monday': { morning: [], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Tuesday': { morning: [{group:'Senior',start:'06:00',end:'08:30'},{group:'Senior Dev',start:'06:45',end:'08:30'}], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Wednesday': { morning: [{group:'Senior',start:'06:00',end:'08:30'},{group:'Senior Dev',start:'06:45',end:'08:30'}], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Thursday': { morning: [{group:'Senior',start:'06:00',end:'08:30'},{group:'Senior Dev',start:'06:45',end:'08:30'}], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Friday': { morning: [{group:'Senior',start:'06:00',end:'08:30'},{group:'Senior Dev',start:'06:45',end:'08:30'}], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Saturday': { morning: [{group:'Senior',start:'08:00',end:'10:30'},{group:'Senior Dev',start:'08:00',end:'10:30'}], evening: [] },
+        'Sunday': { morning: [], evening: [] }
+      };
+    }
+  }
 };
+
+let currentLocationKey = 'stillwater';
 
 // ============================================================
 //  STATE
@@ -274,9 +336,10 @@ async function fetchLightningData() {
     return;
   }
   try {
+    const loc = locations[currentLocationKey];
     const url =
       `${LIGHTNING_PROXY_URL}/lightning` +
-      `?lat=${LAT}&lon=${LON}` +
+      `?lat=${loc.lat}&lon=${loc.lon}` +
       `&search_distance_km=${LIGHTNING_SEARCH_KM}` +
       `&search_mins=${LIGHTNING_SEARCH_MINS}` +
       `&sort=distance&limit=20`;
@@ -459,12 +522,13 @@ function getThreatScore(hourData) {
 // ============================================================
 async function fetchWeatherData() {
   try {
+    const loc = locations[currentLocationKey];
     document.getElementById('current-conditions').innerHTML = '<p>Loading live weather data...</p>';
     document.getElementById('timestamp').textContent = 'Fetching...';
 
     const [alertsRes, forecastRes] = await Promise.all([
-      fetch('https://api.weather.gov/alerts/active?point=36.1152,-97.0624'),
-      fetch('https://api.weather.gov/gridpoints/OUN/114,122/forecast/hourly')
+      fetch(`https://api.weather.gov/alerts/active?point=${loc.lat},${loc.lon}`),
+      fetch(`https://api.weather.gov/gridpoints/${loc.grid}/forecast/hourly`)
     ]);
 
     // Lightning fetch is non-blocking — runs in parallel
@@ -525,7 +589,14 @@ function updateDashboard() {
   if (!dayData.length) return;
 
   const weekday  = dayData[0].weekday;
-  const schedule = schedules[weekday] || { evening: [], morning: [] };
+  const loc = locations[currentLocationKey];
+  let scheduleObj;
+  if (loc.schedules) {
+    scheduleObj = loc.schedules[weekday] || { evening: [], morning: [] };
+  } else {
+    scheduleObj = loc.getSchedules(dayData[0].fullDate.toISOString())[weekday] || { evening: [], morning: [] };
+  }
+  const schedule = scheduleObj;
 
   let morningEarliestStart = null, morningLatestEnd = null;
   let eveningEarliestStart = null, eveningLatestEnd = null;
@@ -696,6 +767,15 @@ function updateDashboard() {
 // ============================================================
 //  INIT
 // ============================================================
+document.querySelectorAll('input[name="location"]').forEach(el => {
+  el.addEventListener('change', (e) => {
+    currentLocationKey = e.target.value;
+    const loc = locations[currentLocationKey];
+    const iframe = document.querySelector('iframe');
+    iframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=7&overlay=radar&product=radar&level=surface&lat=${loc.lat}&lon=${loc.lon}`;
+    fetchWeatherData();
+  });
+});
 daySelect.addEventListener('change', updateDashboard);
 document.getElementById('refresh-btn').addEventListener('click', fetchWeatherData);
 fetchWeatherData();
