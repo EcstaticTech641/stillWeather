@@ -467,6 +467,8 @@ function getThreatScore(hourData) {
   });
   if (hasTornado) return 100;
 
+  const pop          = hourData.pop || 0;
+  const gust         = Math.max(hourData.wind_speed || 0, hourData.wind_gust || 0);
   const desc         = (hourData.desc || '').toLowerCase();
   const hoursFromNow = (hourData.fullDate.getTime() - Date.now()) / (1000 * 60 * 60);
 
@@ -495,8 +497,6 @@ function getThreatScore(hourData) {
   }
 
   // ── 3. Weather score (deliberately restrained — rain alone is acceptable) ──
-  const pop  = hourData.pop || 0;
-  const gust = Math.max(hourData.wind_speed || 0, hourData.wind_gust || 0);
 
   const rainScore = pop >= 80 ? 12 : pop >= 50 ? 7 : pop >= 30 ? 3 : 0;
   const windScore = gust >= 55 ? 30 : gust >= 45 ? 20 : gust >= 35 ? 12 : gust >= 25 ? 5 : 0;
