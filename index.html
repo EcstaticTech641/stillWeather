@@ -83,7 +83,7 @@
       </div>
     </div>
     <div class="lightning-section">
-      <h3>&#9889; Lightning status</h3>
+      <h3>Lightning status</h3>
       <div class="lightning-row">
         <span id="lightning-pill" class="pill status-green">Checking...</span>
         <span id="lightning-detail" style="font-size:0.875rem;color:var(--text-muted);">Fetching real-time strike data...</span>
@@ -605,14 +605,13 @@ function updateDashboard() {
   dList.innerHTML = '';
 
   if (!LIGHTNING_PROXY_URL) {
-    dList.innerHTML += `<li>&#9889; Lightning: <em style="color:var(--text-muted)">NWS text fallback (no distance data) &mdash; configure Cloudflare Worker proxy for real-time scoring</em></li>`;
+    dList.innerHTML += `<li>Lightning: <em style="color:var(--text-muted)">NWS text fallback (no distance data) &mdash; configure Cloudflare Worker proxy for real-time scoring</em></li>`;
   } else if (!lightningData) {
-    dList.innerHTML += `<li>&#9889; Lightning: <em style="color:var(--text-muted)">Proxy error &mdash; NWS text fallback active</em></li>`;
+    dList.innerHTML += `<li>Lightning: <em style="color:var(--text-muted)">Proxy error &mdash; NWS text fallback active</em></li>`;
   } else if (lResult.score > 0) {
-    const lSt = getStatusInfo(lResult.score);
-    dList.innerHTML += `<li>&#9889; Lightning: <strong>${lResult.label}</strong> &mdash; <span class="pill ${lSt.cls}" style="font-size:0.75rem;padding:2px 8px;">${lResult.urgency}</span> (${lResult.count} strike${lResult.count !== 1 ? 's' : ''} in range)</li>`;
+    dList.innerHTML += `<li>Lightning: Nearest strike: <strong>${lResult.distMi.toFixed(1)}&nbsp;mi</strong> ${lResult.dir} &mdash; ${lResult.count} strike${lResult.count !== 1 ? 's' : ''} in the last ${lResult.pastMins}&nbsp;min</li>`;
   } else {
-    dList.innerHTML += `<li>&#9889; Lightning: <strong>None detected</strong> within ${radiusMi}&nbsp;mi in the last ${LIGHTNING_SEARCH_MINS}&nbsp;min</li>`;
+    dList.innerHTML += `<li>Lightning: Nearest strike: <strong>None</strong> within ${radiusMi}&nbsp;mi in the last ${LIGHTNING_SEARCH_MINS}&nbsp;min</li>`;
   }
 
   if (schedule.morning.length) {
@@ -680,7 +679,7 @@ function updateDashboard() {
     const dhr   = hr % 12 || 12;
     const hoursFromNow    = (hour.fullDate.getTime() - Date.now()) / (1000 * 60 * 60);
     const lightningDriven = liveStrike.score > 0 && hoursFromNow <= 2;
-    const descDisplay     = `${hour.desc || 'None'}${lightningDriven ? ' &#9889;' : ''}`;
+    const descDisplay     = `${hour.desc || 'None'}${lightningDriven ? ' (lightning)' : ''}`;
     const tr = document.createElement('tr');
     if (isPractice) tr.className = 'timeline-practice';
     else if (isTravel) tr.className = 'timeline-travel';
