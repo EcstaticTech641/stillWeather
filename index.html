@@ -482,7 +482,13 @@ function getThreatScore(hourData) {
     desc.includes('tstm') || desc.includes('thunder') || desc.includes('t-storm');
   if (hasThunderForecast) {
     if (!lightningData || hoursFromNow > 2) {
-      lightningScore = 60;
+      if (pop >= 70) {
+        lightningScore = 60;
+      } else if (pop >= 40) {
+        lightningScore = 50;
+      } else {
+        lightningScore = 40;
+      }
     } else {
       lightningScore = Math.min(lightningScore + 5, 100);
     }
