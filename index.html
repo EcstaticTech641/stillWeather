@@ -167,7 +167,7 @@ const LIGHTNING_PROXY_URL = 'https://stillweather-lightning.aaronfpp.workers.dev
 
 const LAT  = 36.1152;
 const LON  = -97.0624;
-const LIGHTNING_SEARCH_KM   = 40;  // ~25 mi — full awareness radius
+const LIGHTNING_SEARCH_KM   = 80;  // ~50 mi — extended awareness radius (alert threshold: 25 mi)
 const LIGHTNING_SEARCH_MINS = 30;  // mirrors YMCA 30-min clearance window
 
 // ============================================================
@@ -609,7 +609,8 @@ function updateDashboard() {
   } else if (!lightningData) {
     dList.innerHTML += `<li>Lightning: <em style="color:var(--text-muted)">Proxy error &mdash; NWS text fallback active</em></li>`;
   } else if (lResult.score > 0) {
-    dList.innerHTML += `<li>Lightning: Nearest strike: <strong>${lResult.distMi.toFixed(1)}&nbsp;mi</strong> ${lResult.dir} &mdash; ${lResult.count} strike${lResult.count !== 1 ? 's' : ''} in the last ${lResult.pastMins}&nbsp;min</li>`;
+    const beyondAlert = lResult.distMi > 25;
+    dList.innerHTML += `<li>Lightning: Nearest strike: <strong>${lResult.distMi.toFixed(1)}&nbsp;mi</strong> ${lResult.dir} &mdash; ${lResult.count} strike${lResult.count !== 1 ? 's' : ''} in the last ${lResult.pastMins}&nbsp;min${beyondAlert ? ' <em style="color:var(--text-muted)">(outside alert range)</em>' : ''}</li>`;
   } else {
     dList.innerHTML += `<li>Lightning: Nearest strike: <strong>None</strong> within ${radiusMi}&nbsp;mi in the last ${LIGHTNING_SEARCH_MINS}&nbsp;min</li>`;
   }
