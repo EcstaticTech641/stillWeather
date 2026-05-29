@@ -27,4 +27,3 @@ Simply open `index.html` in any web browser. The app will automatically query th
     - 40-59: Monitor (Low)
     - 60-84: Monitor (High)
     - 85+: Cancel
-test
