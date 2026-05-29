@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Practice Weather Decision Tool</title>
+<link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="shortcut icon" href="favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="WeatherTool" />
+<link rel="manifest" href="site.webmanifest" />
+<style>
+  :root {
+    --bg: #f4f4f5; --card-bg: #ffffff; --text: #18181b; --text-muted: #71717a;
+    --border: #e4e4e7; --green-bg: #dcfce7; --green-text: #166534;
+    --yellow-bg: #fef08a; --yellow-text: #713f12; --amber-bg: #fef3c7;
+    --amber-text: #92400e; --red-bg: #fee2e2; --red-text: #991b1b; --blue-bg: #dbeafe;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #09090b; --card-bg: #18181b; --text: #f4f4f5; --text-muted: #a1a1aa;
+      --border: #27272a; --green-bg: #052e16; --green-text: #4ade80;
+      --yellow-bg: #422006; --yellow-text: #fde047; --amber-bg: #451a03;
+      --amber-text: #fbbf24; --red-bg: #450a0a; --red-text: #f87171; --blue-bg: #172554;
+    }
+    .github-logo { filter: invert(1); }
+  }
+  body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
+    color: var(--text); margin: 0; padding: 24px; line-height: 1.5; }
+  .dashboard { max-width: 900px; margin: 0 auto; display: grid; gap: 24px; }
+  .card { background: var(--card-bg); border: 1px solid var(--border); padding: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+  h1, h2, h3 { margin-top: 0; margin-bottom: 16px; font-weight: 600; }
+  h1 { font-size: 1.5rem; } h2 { font-size: 1.25rem; }
+  h3 { font-size: 1rem; color: var(--text-muted); }
+  .pill { display: inline-block; padding: 4px 12px; font-size: 0.875rem; font-weight: 600; }
+  .status-green  { background: var(--green-bg);  color: var(--green-text); }
+  .status-yellow { background: var(--yellow-bg); color: var(--yellow-text); }
+  .status-amber  { background: var(--amber-bg);  color: var(--amber-text); }
+  .status-red    { background: var(--red-bg);    color: var(--red-text); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-muted); font-weight: 600; }
+  .timeline-travel, .timeline-practice { background: var(--blue-bg); }
+  .controls { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
+  .control-group { display: flex; flex-direction: column; gap: 8px; }
+  label { font-size: 0.875rem; font-weight: 600; }
+  select { padding: 8px; background: var(--bg); border: 1px solid var(--border); color: var(--text); }
+  .metric { font-size: 1.5rem; font-weight: 600; }
+  .metric-label { font-size: 0.875rem; color: var(--text-muted); }
+  .lightning-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .lightning-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+  footer { margin-top: 48px; text-align: center; font-size: 0.875rem; color: var(--text-muted); }
+  footer a { transition: color 0.2s ease; }
+  footer a:hover { color: var(--text) !important; }
+</style>
+</head>
+<body>
+<div class="dashboard">
+
+  <div class="card">
+    <h1>Practice weather decision tool</h1>
+    <div class="location-tabs" style="display:flex; gap:16px; margin-bottom: 24px; flex-wrap: wrap; font-size:1rem; font-weight:500;">
+      <label style="cursor:pointer; display:flex; align-items:center; gap:6px;"><input type="radio" name="location" value="stillwater" checked> Stillwater YMCA</label>
+      <label style="cursor:pointer; display:flex; align-items:center; gap:6px;"><input type="radio" name="location" value="mitch"> Mitch Park YMCA</label>
+      <label style="cursor:pointer; display:flex; align-items:center; gap:6px;"><input type="radio" name="location" value="bethany"> Bethany YMCA</label>
+    </div>
+    <div class="controls">
+      <div class="control-group">
+        <label for="day-select">Select day</label>
+        <select id="day-select"></select>
+      </div>
+      <div class="control-group" style="justify-content: flex-end;">
+        <button id="refresh-btn" style="padding:8px 16px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-weight:600;cursor:pointer;">Refresh Data</button>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h3>Top-level verdict</h3>
+        <div style="margin-bottom:16px;"><span id="verdict-pill" class="pill status-green">Loading...</span></div>
+        <p id="verdict-reasoning" style="font-size:0.875rem;">Fetching live data from NWS...</p>
+      </div>
+      <div>
+        <h3 id="conditions-title">Current conditions</h3>
+        <div class="grid-2" style="gap:16px;" id="current-conditions"><p>Loading live weather data...</p></div>
+      </div>
+    </div>
+    <div class="lightning-section">
+      <h3>Lightning status</h3>
+      <div class="lightning-row">
+        <span id="lightning-pill" class="pill status-green">Checking...</span>
+        <span id="lightning-detail" style="font-size:0.875rem;color:var(--text-muted);">Fetching real-time strike data...</span>
+      </div>
+      <div id="lightning-source" style="font-size:0.75rem;color:var(--text-muted);"></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>Decision factors</h2>
+      <ul style="padding-left:20px;font-size:0.875rem;margin:0;" id="factors-list"></ul>
+      <h3 style="margin-top:24px;">Active alerts</h3>
+      <ul style="padding-left:20px;font-size:0.875rem;margin:0;" id="alerts-list"></ul>
+    </div>
+    <div class="card">
+      <h2>Group schedule &amp; risk</h2>
+      <table>
+        <thead><tr><th>Group</th><th>Practice time</th><th>Decide by</th><th>Risk level</th></tr></thead>
+        <tbody id="groups-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Live Radar &amp; Lightning Map</h2>
+    <div style="border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+      <iframe width="100%" height="350"
+        src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=7&overlay=radar&product=radar&level=surface&lat=36.1152&lon=-97.0624"
+        frameborder="0" style="display:block;"></iframe>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Hourly timeline (travel &amp; practice windows)</h2>
+    <table>
+      <thead><tr><th>Hour</th><th>Temp</th><th>Wind/Gust</th><th>Precip chance</th><th>Descriptor</th><th>Threat score</th></tr></thead>
+      <tbody id="timeline-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<footer>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px;justify-content:center;">
+    <div>
+      Data: National Weather Service API &bull; Lightning: Weatherbit via Cloudflare Worker<br>
+      Timestamp: <span id="timestamp">Updating...</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <a href="https://github.com/EcstaticTech641/stillWeather/" target="_blank"
+         style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--text-muted);font-weight:500;">
+        <img src="GitHub_Invertocat_Black.svg" alt="GitHub Logo" class="github-logo"
+             style="width:16px;height:16px;display:inline-block;vertical-align:middle;" />
+        <span>GitHub</span>
+      </a>
+      <span style="color:var(--border);">|</span>
+      <span>last update: 2026-05-26</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+//  CONFIGURATION
+// ============================================================
+//
+//  LIGHTNING_PROXY_URL — your Cloudflare Worker URL.
+//  The Weatherbit API key lives ONLY in the Worker's encrypted
+//  environment variables — never in this file.
+//
+//  Steps:
+//    1. Deploy lightning-proxy.js to Cloudflare Workers
+//    2. Add WEATHERBIT_API_KEY as an encrypted env variable there
+//    3. Paste your worker URL below, e.g.:
+//         'https://stillweather-lightning.YOURNAME.workers.dev'
+//    4. Leave empty to fall back to NWS forecast-text detection
+//       (no distance data, less granular — still functional)
+//
+const LIGHTNING_PROXY_URL = 'https://stillweather-lightning.ronlab.workers.dev';  // <-- set after Worker deployment
+
+const LIGHTNING_SEARCH_KM   = 80;  // ~50 mi — extended awareness radius (alert threshold: 25 mi)
+const LIGHTNING_SEARCH_MINS = 30;  // mirrors YMCA 30-min clearance window
+
+// ============================================================
+//  LOCATIONS & SCHEDULES
+// ============================================================
+const locations = {
+  stillwater: {
+    name: 'Stillwater YMCA',
+    lat: 36.1152,
+    lon: -97.0624,
+    grid: 'OUN/114,122',
+    schedules: {
+      'Monday': {
+        evening: [
+          { group: 'Onyx',       start: '18:30', end: '19:15' },
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '17:15', end: '18:30' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
+      },
+      'Tuesday': {
+        evening: [
+          { group: 'Onyx',       start: '18:30', end: '19:15' },
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '18:30', end: '19:45' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: []
+      },
+      'Wednesday': {
+        evening: [
+          { group: 'Onyx',       start: '18:30', end: '19:15' },
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '17:15', end: '18:30' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
+      },
+      'Thursday': {
+        evening: [
+          { group: 'Onyx',       start: '18:30', end: '19:15' },
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '18:30', end: '19:45' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: []
+      },
+      'Friday': {
+        evening: [
+          { group: 'Sapphire',   start: '18:30', end: '19:30' },
+          { group: 'Ivory',      start: '18:30', end: '19:30' },
+          { group: 'Purple',     start: '17:00', end: '18:30' },
+          { group: 'Senior Dev', start: '17:00', end: '18:30' },
+          { group: 'Senior',     start: '17:00', end: '19:00' }
+        ],
+        morning: [ { group: 'Senior Dev / Senior', start: '07:00', end: '08:30' } ]
+      },
+      'Saturday': { evening: [], morning: [] },
+      'Sunday':   { evening: [], morning: [] }
+    }
+  },
+  mitch: {
+    name: 'Mitch Park YMCA',
+    lat: 35.6847,
+    lon: -97.5083,
+    grid: 'OUN/98,103',
+    getSchedules: (dateStr) => {
+      const isSummer = new Date(dateStr) >= new Date('2026-06-01');
+      if (isSummer) {
+        return {
+          'Monday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Tuesday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Wednesday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Thursday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Friday': { morning: [{group:'Senior',start:'06:15',end:'08:30'}], evening: [{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:30',end:'19:45'},{group:'Senior Dev',start:'17:00',end:'18:30'},{group:'Senior',start:'17:00',end:'18:45'}] },
+          'Saturday': { morning: [{group:'Purple',start:'09:45',end:'11:00'}], evening: [] },
+          'Sunday': { morning: [], evening: [] }
+        };
+      } else {
+        return {
+          'Monday': { morning: [], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Purple',start:'17:30',end:'18:30'},{group:'Senior Dev',start:'17:30',end:'18:45'},{group:'Senior',start:'18:30',end:'20:00'}] },
+          'Tuesday': { morning: [{group:'Senior',start:'05:30',end:'07:00'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'17:30',end:'18:15'},{group:'Ivory',start:'17:30',end:'18:15'},{group:'Senior Dev',start:'17:30',end:'18:45'},{group:'Senior',start:'18:15',end:'20:00'}] },
+          'Wednesday': { morning: [{group:'Senior',start:'05:30',end:'07:00'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Onyx',start:'18:30',end:'19:15'},{group:'Sapphire',start:'17:30',end:'18:30'},{group:'Ivory',start:'17:30',end:'18:30'},{group:'Purple',start:'17:30',end:'18:45'},{group:'Senior Dev',start:'18:30',end:'20:00'}] },
+          'Thursday': { morning: [{group:'Senior',start:'05:30',end:'07:00'}], evening: [{group:'Pre Prep',start:'17:30',end:'18:00'},{group:'Prep',start:'18:00',end:'18:30'},{group:'Sapphire',start:'17:30',end:'18:15'},{group:'Ivory',start:'17:30',end:'18:15'},{group:'Purple',start:'18:45',end:'19:45'},{group:'Senior Dev',start:'17:30',end:'18:45'},{group:'Senior',start:'18:15',end:'20:00'}] },
+          'Friday': { morning: [{group:'Senior',start:'05:30',end:'07:00'}], evening: [{group:'Sapphire',start:'18:45',end:'19:45'},{group:'Ivory',start:'18:45',end:'19:45'},{group:'Purple',start:'18:45',end:'20:00'},{group:'Senior Dev',start:'18:30',end:'20:00'},{group:'Senior',start:'17:30',end:'19:00'}] },
+          'Saturday': { morning: [{group:'Purple',start:'09:30',end:'11:15'},{group:'Senior Dev',start:'09:25',end:'11:30'},{group:'Senior',start:'09:25',end:'12:00'}], evening: [] },
+          'Sunday': { morning: [], evening: [] }
+        };
+      }
+    }
+  },
+  bethany: {
+    name: 'Bethany YMCA & Ripper Park',
+    lat: 35.5051,
+    lon: -97.6316,
+    grid: 'OUN/93,95',
+    getSchedules: (dateStr) => {
+      // Using summer schedule for Bethany/Ripper Park
+      // Morning (Ripper Park), Evening (Bethany YMCA)
+      return {
+        'Monday': { morning: [], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Tuesday': { morning: [{group:'Senior',start:'06:00',end:'08:30'},{group:'Senior Dev',start:'06:45',end:'08:30'}], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Wednesday': { morning: [{group:'Senior',start:'06:00',end:'08:30'},{group:'Senior Dev',start:'06:45',end:'08:30'}], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Thursday': { morning: [{group:'Senior',start:'06:00',end:'08:30'},{group:'Senior Dev',start:'06:45',end:'08:30'}], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Friday': { morning: [{group:'Senior',start:'06:00',end:'08:30'},{group:'Senior Dev',start:'06:45',end:'08:30'}], evening: [{group:'Senior',start:'16:00',end:'17:30'},{group:'Senior Dev',start:'16:00',end:'17:15'},{group:'Purple',start:'16:00',end:'17:00'}] },
+        'Saturday': { morning: [{group:'Senior',start:'08:00',end:'10:30'},{group:'Senior Dev',start:'08:00',end:'10:30'}], evening: [] },
+        'Sunday': { morning: [], evening: [] }
+      };
+    }
+  }
+};
+
+let currentLocationKey = 'stillwater';
+
+// ============================================================
+//  STATE
+// ============================================================
+const daySelect   = document.getElementById('day-select');
+let weatherData   = { alerts: [], data: [] };
+let allDays       = [];
+let lightningData = null;  // null = not fetched / failed | object = API result
+
+// ============================================================
+//  UTILITIES
+// ============================================================
+function parseNum(str) {
+  if (!str || str === '--') return 0;
+  if (typeof str === 'number') return str;
+  const m = str.toString().match(/[0-9]+/g);
+  return m ? Math.max(...m.map(x => parseInt(x, 10))) : 0;
+}
+function formatTime(t) {
+  const [h, m] = t.split(':');
+  let hr = parseInt(h, 10);
+  const ap = hr >= 12 ? 'pm' : 'am';
+  hr = hr % 12 || 12;
+  return `${hr}:${m}${ap}`;
+}
+function getStatusInfo(score) {
+  if (score >= 85) return { text: 'Cancel',         cls: 'status-red'    };
+  if (score >= 60) return { text: 'Monitor (High)', cls: 'status-amber'  };
+  if (score >= 40) return { text: 'Monitor (Low)',  cls: 'status-yellow' };
+  return               { text: 'Hold',           cls: 'status-green'  };
+}
+
+// ============================================================
+//  LIGHTNING — FETCH  (via Cloudflare Worker proxy)
+// ============================================================
+async function fetchLightningData() {
+  if (!LIGHTNING_PROXY_URL) {
+    // No proxy configured — NWS text fallback will handle scoring
+    lightningData = null;
+    updateLightningStatus();
+    return;
+  }
+  try {
+    const loc = locations[currentLocationKey];
+    const url =
+      `${LIGHTNING_PROXY_URL}/lightning` +
+      `?lat=${loc.lat}&lon=${loc.lon}` +
+      `&search_distance_km=${LIGHTNING_SEARCH_KM}` +
+      `&search_mins=${LIGHTNING_SEARCH_MINS}` +
+      `&sort=distance&limit=20`;
+
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Log quota status to browser console for easy monitoring
+    const remaining = res.headers.get('X-RateLimit-Remaining');
+    const resetAt   = res.headers.get('X-RateLimit-Reset');
+    const cacheHit  = res.headers.get('X-Cache') || 'MISS';
+    if (remaining !== null) {
+      console.info(
+        `[stillWeather] Lightning API \u2014 quota remaining today: ${remaining}` +
+        ` | resets: ${resetAt} | cache: ${cacheHit}`
+      );
+    }
+
+    lightningData = await res.json();
+  } catch (e) {
+    console.warn('[stillWeather] Lightning proxy error:', e.message, '\u2014 NWS text fallback active.');
+    lightningData = null;
+  }
+  updateLightningStatus();
+  updateDashboard();
+}
+
+// ============================================================
+//  LIGHTNING — SCORE  (distance-based, dominant signal)
+// ============================================================
+//
+//  Zone bands align to facility policy (clear pool at <=15 mi):
+//    <= 5 mi  → 92  Immediate Danger (Cancel)
+//    <=10 mi  → 88  Cancel
+//    <=15 mi  → 85  Cancel — Facility Threshold
+//    <=20 mi  → 65  Monitor (High)
+//    <=25 mi  → 45  Monitor (Low)
+//     >25 mi  → 15  Distant — Hold
+//
+function getLightningScore() {
+  const empty = { score: 0, label: null, urgency: null, hasData: false };
+  if (!lightningData) return empty;
+
+  const strikes = lightningData.lightning || [];
+  if (strikes.length === 0) return { ...empty, hasData: true, count: 0 };
+
+  const c        = strikes[0];   // sorted by distance (closest first)
+  const distMi   = c.distance_mi;
+  const pastMins = Math.round(c.past_mins);
+  const dir      = c.bearing_cardinal || '';
+
+  let score, urgency;
+  if      (distMi <=  5) { score = 92; urgency = 'Immediate Danger';              }
+  else if (distMi <= 10) { score = 88; urgency = 'Cancel';                        }
+  else if (distMi <= 15) { score = 85; urgency = 'Cancel \u2014 Facility Threshold'; }
+  else if (distMi <= 20) { score = 65; urgency = 'Monitor High';                  }
+  else if (distMi <= 25) { score = 45; urgency = 'Monitor';                       }
+  else                   { score = 15; urgency = 'Distant';                       }
+
+  return {
+    score, urgency,
+    label:   `${distMi.toFixed(1)}\u00a0mi ${dir} \u2014 ${pastMins}\u00a0min ago`,
+    distMi, pastMins, dir,
+    count:   lightningData.count || strikes.length,
+    hasData: true
+  };
+}
+
+// ============================================================
+//  LIGHTNING — STATUS UI
+// ============================================================
+function updateLightningStatus() {
+  const pill   = document.getElementById('lightning-pill');
+  const detail = document.getElementById('lightning-detail');
+  const src    = document.getElementById('lightning-source');
+  const radiusMi = Math.round(LIGHTNING_SEARCH_KM / 1.609);
+
+  if (!LIGHTNING_PROXY_URL) {
+    pill.textContent   = 'Proxy Not Configured';
+    pill.className     = 'pill status-yellow';
+    detail.textContent = 'Using NWS forecast text for lightning detection \u2014 no strike distance data.';
+    src.textContent    = 'To enable real-time distance scoring: deploy lightning-proxy.js to Cloudflare Workers, then set LIGHTNING_PROXY_URL.';
+    return;
+  }
+  if (!lightningData) {
+    pill.textContent   = 'API Error';
+    pill.className     = 'pill status-amber';
+    detail.textContent = 'Proxy unreachable \u2014 falling back to NWS forecast text.';
+    src.textContent    = `Source: Cloudflare Worker (failed) \u2192 NWS text fallback`;
+    return;
+  }
+
+  const r = getLightningScore();
+  if (!r.score) {
+    pill.textContent   = 'Clear';
+    pill.className     = 'pill status-green';
+    detail.textContent = `No lightning detected within ${radiusMi}\u00a0miles in the past ${LIGHTNING_SEARCH_MINS}\u00a0minutes.`;
+    src.textContent    = `Source: Weatherbit via Cloudflare Worker \u00b7 ${r.count || 0} strikes in zone`;
+  } else {
+    const st = getStatusInfo(r.score);
+    pill.textContent   = r.urgency;
+    pill.className     = 'pill ' + st.cls;
+    detail.textContent = `\u26a1 Closest: ${r.label} \u00b7 ${r.count} strike${r.count !== 1 ? 's' : ''} within ${radiusMi}\u00a0mi`;
+    src.textContent    = `Source: Weatherbit via Cloudflare Worker \u00b7 Radius: ${radiusMi}\u00a0mi, last ${LIGHTNING_SEARCH_MINS}\u00a0min`;
+  }
+}
+
+// ============================================================
+//  SCORING ENGINE
+// ============================================================
+//
+//  Layer 1 — Hard overrides:  Tornado (100) / Severe TStorm warning (85 floor)
+//  Layer 2 — Lightning:       Real-time Weatherbit data (current +2 h window)
+//                             NWS text fallback for future hours / no proxy
+//  Layer 3 — Weather:         Rain max +12 | Wind max +30 | Desc max +20
+//             Rain alone cannot Cancel. Severe weather + approaching storm can bump band.
+//
+function getThreatScore(hourData) {
+  // ── 1. Hard overrides ─────────────────────────────────────────────────────
+  let hasTornado = false, hasSevere = false;
+  weatherData.alerts.forEach(a => {
+    const al = a.toLowerCase();
+    if (al.includes('tornado warning'))             hasTornado = true;
+    if (al.includes('severe thunderstorm warning')) hasSevere  = true;
+  });
+  if (hasTornado) return 100;
+
+  const pop          = hourData.pop || 0;
+  const gust         = Math.max(hourData.wind_speed || 0, hourData.wind_gust || 0);
+  const desc         = (hourData.desc || '').toLowerCase();
+  const hoursFromNow = (hourData.fullDate.getTime() - Date.now()) / (1000 * 60 * 60);
+
+  // ── 2a. Real-time lightning (Weatherbit, within current +2 h window) ──────
+  let lightningScore = 0;
+  if (hoursFromNow <= 2) {
+    lightningScore = getLightningScore().score;
+  }
+
+  // ── 2b. NWS text fallback (all hours — used when proxy unavailable or >2 h) ──
+  //   Score 60 = Monitor (High) — conservative since distance is unknown
+  const hasThunderForecast =
+    desc.includes('tstm') || desc.includes('thunder') || desc.includes('t-storm');
+  if (hasThunderForecast) {
+    if (!lightningData || hoursFromNow > 2) {
+      if (pop >= 70) {
+        lightningScore = 60;
+      } else if (pop >= 40) {
+        lightningScore = 50;
+      } else {
+        lightningScore = 40;
+      }
+    } else {
+      lightningScore = Math.min(lightningScore + 5, 100);
+    }
+  }
+
+  // ── 3. Weather score (deliberately restrained — rain alone is acceptable) ──
+
+  const rainScore = pop >= 80 ? 12 : pop >= 50 ? 7 : pop >= 30 ? 3 : 0;
+  const windScore = gust >= 55 ? 30 : gust >= 45 ? 20 : gust >= 35 ? 12 : gust >= 25 ? 5 : 0;
+
+  let descScore = 0;
+  if (desc.includes('hail'))                               descScore += 20;
+  if (desc.includes('severe') && !desc.includes('warning')) descScore += 10;
+  if (desc.includes('freezing') || desc.includes('ice'))   descScore += 10;
+
+  const weatherScore = rainScore + windScore + descScore;
+
+  // ── 4. Combine ─────────────────────────────────────────────────────────────
+  //   Weather cap prevents rain/wind from inflating a lightning-driven Cancel
+  let finalScore;
+  if (lightningScore >= 85) {
+    finalScore = lightningScore + Math.min(weatherScore, 8);
+  } else if (lightningScore > 0) {
+    finalScore = lightningScore + Math.min(weatherScore, 15);
+  } else {
+    finalScore = weatherScore;  // weather only — max ~62 in extreme conditions
+  }
+
+  if (hasSevere) finalScore = Math.max(finalScore, 85);
+  return Math.min(finalScore, 100);
+}
+
+// ============================================================
+//  NWS DATA FETCH
+// ============================================================
+async function fetchWeatherData() {
+  try {
+    const loc = locations[currentLocationKey];
+    document.getElementById('current-conditions').innerHTML = '<p>Loading live weather data...</p>';
+    document.getElementById('timestamp').textContent = 'Fetching...';
+
+    const [alertsRes, forecastRes] = await Promise.all([
+      fetch(`https://api.weather.gov/alerts/active?point=${loc.lat},${loc.lon}`),
+      fetch(`https://api.weather.gov/gridpoints/${loc.grid}/forecast/hourly`)
+    ]);
+
+    // Lightning fetch is non-blocking — runs in parallel
+    fetchLightningData();
+
+    const alertsJson   = await alertsRes.json();
+    const forecastJson = await forecastRes.json();
+
+    weatherData.alerts = (alertsJson.features || []).map(f => f.properties.event);
+
+    weatherData.data = (forecastJson.properties.periods || []).map(p => {
+      const fullDate = new Date(p.startTime);
+      return {
+        fullDate,
+        dayStr:     fullDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }),
+        weekday:    fullDate.toLocaleDateString('en-US', { weekday: 'long' }),
+        hour:       fullDate.getHours(),
+        temp:       p.temperature,
+        wind_speed: parseNum(p.windSpeed),
+        wind_gust:  p.windGust ? parseNum(p.windGust) : 0,
+        pop:        p.probabilityOfPrecipitation?.value || 0,
+        desc:       p.shortForecast
+      };
+    });
+
+    allDays = [];
+    weatherData.data.forEach(d => { if (!allDays.includes(d.dayStr)) allDays.push(d.dayStr); });
+    daySelect.innerHTML = '';
+    allDays.forEach(day => {
+      const opt = document.createElement('option');
+      opt.value = day; opt.textContent = day;
+      daySelect.appendChild(opt);
+    });
+
+    document.getElementById('timestamp').textContent =
+      new Date().toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' }) +
+      ' (Live from NWS API)';
+
+    updateDashboard();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('current-conditions').innerHTML =
+      '<p style="color:var(--red-text)">Error loading weather data. Please try again later.</p>';
+    document.getElementById('verdict-pill').textContent = 'Error';
+    document.getElementById('verdict-pill').className   = 'pill status-red';
+    document.getElementById('verdict-reasoning').textContent = 'Failed to connect to NWS API.';
+  }
+}
+
+// ============================================================
+//  DASHBOARD UPDATE
+// ============================================================
+function updateDashboard() {
+  if (!weatherData.data.length) return;
+  const selectedDayStr = daySelect.value;
+  const travelMinutes  = 60;
+  const dayData = weatherData.data.filter(d => d.dayStr === selectedDayStr);
+  if (!dayData.length) return;
+
+  const weekday  = dayData[0].weekday;
+  const loc = locations[currentLocationKey];
+  let scheduleObj;
+  if (loc.schedules) {
+    scheduleObj = loc.schedules[weekday] || { evening: [], morning: [] };
+  } else {
+    scheduleObj = loc.getSchedules(dayData[0].fullDate.toISOString())[weekday] || { evening: [], morning: [] };
+  }
+  const schedule = scheduleObj;
+
+  let morningEarliestStart = null, morningLatestEnd = null;
+  let eveningEarliestStart = null, eveningLatestEnd = null;
+  schedule.morning.forEach(g => {
+    if (!morningEarliestStart || g.start < morningEarliestStart) morningEarliestStart = g.start;
+    if (!morningLatestEnd    || g.end   > morningLatestEnd)      morningLatestEnd     = g.end;
+  });
+  schedule.evening.forEach(g => {
+    if (!eveningEarliestStart || g.start < eveningEarliestStart) eveningEarliestStart = g.start;
+    if (!eveningLatestEnd    || g.end   > eveningLatestEnd)      eveningLatestEnd     = g.end;
+  });
+
+  let morningStartHour = 24, morningEndHour = 0;
+  let eveningStartHour = 24, eveningEndHour = 0;
+
+  function windowBounds(earliest, latest) {
+    const p = earliest.split(':');
+    const dt = new Date(dayData[0].fullDate);
+    dt.setHours(parseInt(p[0]), parseInt(p[1]) - travelMinutes, 0);
+    return [dt.getHours(), parseInt(latest.split(':')[0]) + (parseInt(latest.split(':')[1]) > 0 ? 1 : 0)];
+  }
+  if (morningEarliestStart) [morningStartHour, morningEndHour] = windowBounds(morningEarliestStart, morningLatestEnd);
+  if (eveningEarliestStart) [eveningStartHour, eveningEndHour] = windowBounds(eveningEarliestStart, eveningLatestEnd);
+
+  let morningMaxScore = 0, eveningMaxScore = 0;
+  dayData.forEach(hour => {
+    const hr = hour.fullDate.getHours(), s = getThreatScore(hour);
+    if (morningEarliestStart && hr >= morningStartHour && hr <= morningEndHour) morningMaxScore = Math.max(morningMaxScore, s);
+    if (eveningEarliestStart && hr >= eveningStartHour && hr <= eveningEndHour) eveningMaxScore = Math.max(eveningMaxScore, s);
+  });
+
+  const totalMaxScore = Math.max(morningMaxScore, eveningMaxScore);
+  const overall       = getStatusInfo(totalMaxScore);
+
+  const vPill = document.getElementById('verdict-pill');
+  vPill.textContent = overall.text;
+  vPill.className   = 'pill ' + overall.cls;
+  document.getElementById('verdict-reasoning').textContent = {
+    'Cancel':         'Lightning or severe weather threat in the travel/practice window. Cancellation is recommended.',
+    'Monitor (High)': 'High threat level. Monitor radar and NWS alerts very closely.',
+    'Monitor (Low)':  'Elevated conditions. Check radar before the decision deadline.',
+    'Hold':           'Conditions are generally safe for travel and practice.'
+  }[overall.text] || '';
+
+  // Conditions panel
+  const isToday = selectedDayStr === allDays[0];
+  document.getElementById('conditions-title').textContent = isToday ? 'Current conditions' : 'Forecasted conditions';
+  let displayHtml = '';
+  if (isToday) {
+    const cur = dayData[0];
+    displayHtml = `
+      <div><div class="metric">${cur.temp}&deg;F</div><div class="metric-label">Temperature</div></div>
+      <div><div class="metric">${cur.wind_speed}&nbsp;mph</div><div class="metric-label">Wind (Gusts: ${cur.wind_gust || '0'})</div></div>
+      <div><div class="metric">${cur.pop}%</div><div class="metric-label">Precip chance</div></div>
+      <div><div class="metric">${getThreatScore(cur)}</div><div class="metric-label">Threat score</div></div>`;
+  } else {
+    let highTemp = -999, lowTemp = 999, peakWind = 0, sumPop = 0;
+    dayData.forEach(h => {
+      if (h.temp > highTemp) highTemp = h.temp;
+      if (h.temp < lowTemp)  lowTemp  = h.temp;
+      const mw = Math.max(h.wind_speed, h.wind_gust || 0);
+      if (mw > peakWind) peakWind = mw;
+      sumPop += h.pop;
+    });
+    displayHtml = `
+      <div><div class="metric">${highTemp}&deg; / ${lowTemp}&deg;</div><div class="metric-label">High / Low</div></div>
+      <div><div class="metric">Peak ${peakWind}&nbsp;mph</div><div class="metric-label">Est. Peak Wind</div></div>
+      <div><div class="metric">${Math.round(sumPop / dayData.length)}%</div><div class="metric-label">Avg Precip Chance</div></div>
+      <div><div class="metric">${totalMaxScore}</div><div class="metric-label">Max Threat Score</div></div>`;
+  }
+  document.getElementById('current-conditions').innerHTML = displayHtml;
+
+  // Decision factors
+  const dList    = document.getElementById('factors-list');
+  const radiusMi = Math.round(LIGHTNING_SEARCH_KM / 1.609);
+  const lResult  = getLightningScore();
+  dList.innerHTML = '';
+
+  if (!LIGHTNING_PROXY_URL) {
+    dList.innerHTML += `<li>Lightning: <em style="color:var(--text-muted)">NWS text fallback (no distance data) &mdash; configure Cloudflare Worker proxy for real-time scoring</em></li>`;
+  } else if (!lightningData) {
+    dList.innerHTML += `<li>Lightning: <em style="color:var(--text-muted)">Proxy error &mdash; NWS text fallback active</em></li>`;
+  } else if (lResult.score > 0) {
+    const beyondAlert = lResult.distMi > 25;
+    dList.innerHTML += `<li>Lightning: Nearest strike: <strong>${lResult.distMi.toFixed(1)}&nbsp;mi</strong> ${lResult.dir} &mdash; ${lResult.count} strike${lResult.count !== 1 ? 's' : ''} in the last ${lResult.pastMins}&nbsp;min${beyondAlert ? ' <em style="color:var(--text-muted)">(outside alert range)</em>' : ''}</li>`;
+  } else {
+    dList.innerHTML += `<li>Lightning: Nearest strike: <strong>None</strong> within ${radiusMi}&nbsp;mi in the last ${LIGHTNING_SEARCH_MINS}&nbsp;min</li>`;
+  }
+
+  if (schedule.morning.length) {
+    const st = getStatusInfo(morningMaxScore);
+    dList.innerHTML += `<li>Morning threat score: <strong>${morningMaxScore}</strong> (<span class="pill ${st.cls}" style="font-size:0.75rem;padding:2px 8px;">${st.text}</span>)</li>`;
+  }
+  if (schedule.evening.length) {
+    const st = getStatusInfo(eveningMaxScore);
+    dList.innerHTML += `<li>Evening threat score: <strong>${eveningMaxScore}</strong> (<span class="pill ${st.cls}" style="font-size:0.75rem;padding:2px 8px;">${st.text}</span>)</li>`;
+  }
+  if (!schedule.morning.length && !schedule.evening.length) {
+    dList.innerHTML += `<li>No practices scheduled for ${weekday}.</li>`;
+  }
+
+  // Alerts
+  const aList = document.getElementById('alerts-list');
+  aList.innerHTML = weatherData.alerts.length === 0
+    ? '<li>No active alerts</li>'
+    : weatherData.alerts.map(a => `<li style="color:var(--red-text);font-weight:600;">${a}</li>`).join('');
+
+  // Group table
+  const gTbody = document.getElementById('groups-tbody');
+  gTbody.innerHTML = '';
+  [...schedule.morning, ...schedule.evening].forEach(g => {
+    const gSP = g.start.split(':'), gEP = g.end.split(':');
+    const decideDt = new Date(dayData[0].fullDate);
+    decideDt.setHours(parseInt(gSP[0]), parseInt(gSP[1]) - travelMinutes, 0);
+    const gStartHour = decideDt.getHours();
+    const gEndHour   = parseInt(gEP[0]) + (parseInt(gEP[1]) > 0 ? 1 : 0);
+    let grpScore = 0;
+    dayData.forEach(hour => {
+      const hr = hour.fullDate.getHours();
+      if (hr >= gStartHour && hr <= gEndHour) grpScore = Math.max(grpScore, getThreatScore(hour));
+    });
+    const tr = document.createElement('tr');
+    const st = getStatusInfo(grpScore);
+    tr.innerHTML = `
+      <td>${g.group}</td>
+      <td>${formatTime(g.start)} &ndash; ${formatTime(g.end)}</td>
+      <td>${formatTime(decideDt.toTimeString().substring(0, 5))}</td>
+      <td><span class="pill ${st.cls}">${st.text}</span></td>`;
+    gTbody.appendChild(tr);
+  });
+
+  // Timeline
+  const tTbody    = document.getElementById('timeline-tbody');
+  const liveStrike = getLightningScore();
+  tTbody.innerHTML = '';
+  dayData.forEach(hour => {
+    const hr = hour.fullDate.getHours();
+    let isTravel = false, isPractice = false;
+    if (morningEarliestStart) {
+      const ps = parseInt(morningEarliestStart.split(':')[0]);
+      if (hr >= morningStartHour && hr < ps) isTravel   = true;
+      if (hr >= ps && hr <= morningEndHour)  isPractice = true;
+    }
+    if (eveningEarliestStart) {
+      const ps = parseInt(eveningEarliestStart.split(':')[0]);
+      if (hr >= eveningStartHour && hr < ps) isTravel   = true;
+      if (hr >= ps && hr <= eveningEndHour)  isPractice = true;
+    }
+    const score = getThreatScore(hour);
+    const st    = getStatusInfo(score);
+    const ampm  = hr >= 12 ? 'PM' : 'AM';
+    const dhr   = hr % 12 || 12;
+    const hoursFromNow    = (hour.fullDate.getTime() - Date.now()) / (1000 * 60 * 60);
+    const lightningDriven = liveStrike.score > 0 && hoursFromNow <= 2;
+    const descDisplay     = `${hour.desc || 'None'}${lightningDriven ? ' (lightning)' : ''}`;
+    const tr = document.createElement('tr');
+    if (isPractice) tr.className = 'timeline-practice';
+    else if (isTravel) tr.className = 'timeline-travel';
+    tr.innerHTML = `
+      <td>${dhr} ${ampm}</td><td>${hour.temp}&deg;F</td>
+      <td>${hour.wind_speed} / ${hour.wind_gust || 0}</td>
+      <td>${hour.pop}%</td><td>${descDisplay}</td>
+      <td><span class="pill ${st.cls}">${score}</span></td>`;
+    tTbody.appendChild(tr);
+  });
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+document.querySelectorAll('input[name="location"]').forEach(el => {
+  el.addEventListener('change', (e) => {
+    currentLocationKey = e.target.value;
+    const loc = locations[currentLocationKey];
+    const iframe = document.querySelector('iframe');
+    iframe.src = `https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=in&metricTemp=%C2%B0F&metricWind=mph&zoom=7&overlay=radar&product=radar&level=surface&lat=${loc.lat}&lon=${loc.lon}`;
+    fetchWeatherData();
+  });
+});
+daySelect.addEventListener('change', updateDashboard);
+document.getElementById('refresh-btn').addEventListener('click', fetchWeatherData);
+fetchWeatherData();
+</script>
+</body>
+</html>

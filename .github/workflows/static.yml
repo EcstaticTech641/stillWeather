@@ -1,0 +1,72 @@
+# .github/workflows/static.yml
+# ──────────────────────────────────────────────────────────────────────────────
+# stillWeather — GitHub Pages deployment
+#
+# Deploys only the site files (index.html, assets, icons, manifests).
+# Worker files (wrangler.toml, lightning-proxy.js) stay in the repo
+# for version control but are NOT published to the public Pages site.
+#
+# No API key injection needed here — the Weatherbit key lives in
+# Cloudflare Workers encrypted secrets, never in any file.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: Deploy static content to Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1 ── Checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2 ── Assemble only the site files into dist/
+      #      This keeps wrangler.toml and lightning-proxy.js out of the
+      #      public Pages site (they contain no secrets, but no need to serve them).
+      - name: Assemble site files
+        run: |
+          mkdir dist
+          cp index.html dist/
+          cp site.webmanifest dist/
+          cp favicon.ico dist/
+          cp favicon.svg dist/
+          cp favicon-96x96.png dist/
+          cp apple-touch-icon.png dist/
+          cp web-app-manifest-192x192.png dist/
+          cp web-app-manifest-512x512.png dist/
+          cp GitHub_Invertocat_Black.svg dist/
+          echo "✅ Site files assembled in dist/"
+          ls -la dist/
+
+      # 3 ── Configure GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      # 4 ── Upload only dist/ as the Pages artifact
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      # 5 ── Deploy
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
