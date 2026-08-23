@@ -2,7 +2,7 @@
 
 A standalone interactive HTML dashboard widget to help the Stillwater YMCA Swim Club make practice hold/cancel decisions based on real-time National Weather Service (NWS) data.
 Access Here - 
-https://ecstatictech641.github.io/stillWeather/
+https://ecstatictech.github.io/stillWeather/
 
 
 ## Features

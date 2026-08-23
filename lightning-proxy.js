@@ -27,7 +27,7 @@
  */
 
 const ALLOWED_ORIGINS = [
-  'https://ecstatictech641.github.io',
+  'https://ecstatictech.github.io',
   'http://localhost',
   'http://127.0.0.1',
   // Add your custom domain here if you set one up:
